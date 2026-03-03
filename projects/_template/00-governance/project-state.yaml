@@ -1,0 +1,14 @@
+project_name: TBD
+current_stage: intake
+current_item: request-intake
+status: active
+approved_artifacts: []
+blocked_by: []
+next_actor: project-manager
+last_actor: none
+scope_locked: false
+stack_locked: false
+active_epic: none
+active_ticket: none
+command_last: none
+deployment_contract: pending

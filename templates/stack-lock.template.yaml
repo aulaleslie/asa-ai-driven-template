@@ -1,0 +1,10 @@
+project_name: <project-slug>
+fe_stack: next
+be_stack: nest
+db_stack: sqlite
+cache_stack: redis
+lock_status: locked
+locked_by: <actor-id>
+locked_at: YYYY-MM-DDTHH:MM:SSZ
+override_required: false
+override_reference: ""

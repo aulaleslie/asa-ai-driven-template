@@ -1,0 +1,84 @@
+version: 1
+command_registry:
+  - id: intake_start
+    pattern: '^to project manager: I want to build (.+) \| fe=([a-z0-9_-]+) \| be=([a-z0-9_-]+) \| db=([a-z0-9_-]+) \| cache=([a-z0-9_-]+)$'
+    required_stage: none
+    guard_predicates:
+      - stack_allowlist_valid
+      - stack_override_requires_decision
+    action_handler: handle_intake_start
+    mutates_state: true
+  - id: review_scope
+    pattern: '^review scope$'
+    required_stage: discovery
+    guard_predicates:
+      - project_exists
+    action_handler: handle_review_scope
+    mutates_state: true
+  - id: lock_scope
+    pattern: '^lock scope$'
+    required_stage: discovery
+    guard_predicates:
+      - discovery_artifacts_present
+      - discovery_approved
+    action_handler: handle_lock_scope
+    mutates_state: true
+  - id: generate_epics
+    pattern: '^generate epics$'
+    required_stage: planning
+    guard_predicates:
+      - scope_locked
+      - brd_approved
+    action_handler: handle_generate_epics
+    mutates_state: true
+  - id: start_epic
+    pattern: '^start epic-([0-9]+)$'
+    required_stage: delivery
+    guard_predicates:
+      - project_exists
+    action_handler: handle_start_epic
+    mutates_state: true
+  - id: start_ticket
+    pattern: '^start epic-([0-9]+)-ticket-([0-9]+)$'
+    required_stage: delivery
+    guard_predicates:
+      - project_exists
+    action_handler: handle_start_ticket
+    mutates_state: true
+  - id: approve_brd
+    pattern: '^approve BRD$'
+    required_stage: analysis
+    guard_predicates:
+      - brd_exists
+    action_handler: handle_approve_brd
+    mutates_state: true
+  - id: reject_architecture
+    pattern: '^reject Architecture with notes: (.+)$'
+    required_stage: architecture
+    guard_predicates:
+      - architecture_exists
+      - notes_non_empty
+    action_handler: handle_reject_architecture
+    mutates_state: true
+  - id: show_blockers
+    pattern: '^show blockers$'
+    required_stage: any
+    guard_predicates:
+      - project_exists
+    action_handler: handle_show_blockers
+    mutates_state: false
+  - id: resume_stage
+    pattern: '^resume current stage$'
+    required_stage: any
+    guard_predicates:
+      - project_exists
+    action_handler: handle_resume_stage
+    mutates_state: true
+  - id: close_ticket
+    pattern: '^close ticket$'
+    required_stage: delivery
+    guard_predicates:
+      - active_ticket_present
+      - delivery_evidence_present
+    action_handler: handle_close_ticket
+    mutates_state: true

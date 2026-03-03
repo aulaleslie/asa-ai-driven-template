@@ -1,0 +1,35 @@
+# Conventions
+
+## Naming
+
+- Use `Title_Case.md` for project-stage artifact files.
+- Use lowercase with hyphens for directories and scripts.
+- Use `epic-<n>` and `ticket-<n>` in delivery folders.
+
+## Monorepo Contract
+
+Required top-level structure for generated systems:
+
+- `apps/` frontend apps and user-facing clients
+- `services/` backend APIs/workers
+- `infra/` deployment and operations assets
+- `packages/` optional shared libraries/contracts
+
+## Deployment Naming Standards
+
+- Compose service names must be lowercase kebab-case.
+- Environment variables must be uppercase snake case.
+- Service ports must be explicitly documented in `infra/deploy/README.md`.
+- Deployment-only compose files live under `infra/deploy/`.
+
+## Versioning and Change Notes
+
+- Record major decisions in `00-governance/decisions.md`.
+- Keep ADR filenames as `ADR-###.md` with zero padding.
+- Add update dates at the top of major documents.
+
+## Writing Style
+
+- Prefer concise, testable statements.
+- Mark assumptions explicitly.
+- Avoid vague terms without measurable criteria.

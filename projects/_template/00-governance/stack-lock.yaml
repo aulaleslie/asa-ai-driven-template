@@ -1,0 +1,9 @@
+project_name: TBD
+fe_stack: TBD
+be_stack: TBD
+db_stack: TBD
+cache_stack: TBD
+lock_status: unlocked
+locked_by: none
+locked_at: none
+override_required: false

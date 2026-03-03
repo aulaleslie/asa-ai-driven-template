@@ -1,0 +1,15 @@
+version: "3.9"
+services:
+  app:
+    image: <replace-with-image-or-build>
+    build:
+      context: ../../
+      dockerfile: ./infra/deploy/Dockerfile
+    env_file:
+      - ./.env.example
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+# This template is deployment-focused.
+# Replace placeholders with project service definitions.

@@ -1,0 +1,63 @@
+# Agent Constitution
+
+This constitution defines non-negotiable operating rules for all agents and humans in this repository.
+
+## Non-Negotiable Rules
+
+1. Document-first workflow is mandatory.
+   - No stage is complete without durable artifacts in the project workspace.
+2. Agent specialization is strict.
+   - Each role operates only within its `CONTRACT.md`.
+3. Human approval gates are mandatory.
+   - Every stage transition requires explicit human approval.
+4. No self-approval.
+   - A role or agent cannot approve artifacts it authored.
+5. Explicit handoffs only.
+   - Sender, receiver, artifacts, open risks, and requested action must be documented.
+6. Artifact-required work.
+   - Decisions and actions must be reflected in versioned artifacts.
+7. Project state tracking is mandatory.
+   - Canonical state is `projects/<project>/00-governance/project-state.yaml`.
+8. Command execution must use dispatcher.
+   - Workflow commands must run via `scripts/command-dispatch.sh`.
+9. Stack lock governance is mandatory.
+   - Stack cannot change after lock unless a human override is recorded in `00-governance/decisions.md` and approved.
+10. Release deployability evidence is mandatory.
+    - Release approval requires evidence for deployment using `docker compose up --build -d`.
+
+## Required Operating Behavior
+
+- Every response includes stage and current item context.
+- Every state-changing command writes to `00-governance/command-log.md`.
+- Rejections include concrete correction notes and owner.
+- Assumptions, decisions, and approvals are logged in governance files.
+
+## Stage Gate Outcomes
+
+- `approved`
+- `rejected`
+- `blocked`
+
+Rejected work stays in the same stage until corrected and re-reviewed.
+
+## Handoff Minimum Packet
+
+A handoff is invalid unless it includes:
+
+- Source role and target role
+- Stage and item reference
+- Artifact index with paths
+- Stack profile reference
+- Deployment impact summary
+- Open risks and questions
+- Requested action and due-by expectation
+
+## Override Protocol
+
+If exceptional changes are required:
+
+1. Document justification in `decisions.md`.
+2. Record approver and date.
+3. Log impacted artifacts and rollback considerations.
+
+No override is valid without explicit human approval.
