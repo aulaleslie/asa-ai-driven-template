@@ -126,6 +126,13 @@ if [ "$current_stage" != "$target_stage" ]; then
   [ "$is_allowed" = true ] || die "transition '$current_stage' -> '$target_stage' is not allowed"
 fi
 
+if [ "$current_stage" = "quality" ] && [ "$target_stage" = "release" ]; then
+  manual_gate_status="$(get_state_value manual_test_gate_status "$state_file")"
+  open_manual_issues="$(get_state_value open_manual_issues "$state_file")"
+  [ "$manual_gate_status" = "approved" ] || die "quality -> release requires manual_test_gate_status=approved (current: $manual_gate_status)"
+  [ "$open_manual_issues" = "0" ] || die "quality -> release requires open_manual_issues=0 (current: $open_manual_issues)"
+fi
+
 if [ "$target_stage" = "blocked" ] || [ "$target_stage" = "cancelled" ] || [ "$target_stage" = "released" ]; then
   set_state_value "$state_file" status "$target_stage"
   set_state_value "$state_file" last_actor stage-controller

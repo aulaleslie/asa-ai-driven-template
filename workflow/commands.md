@@ -16,6 +16,14 @@ All workflow commands are executed through:
 | start_ticket | `start epic-<n>-ticket-<n>` | delivery | Epic and ticket format valid | Set `active_epic`, `active_ticket`, scaffold ticket packet if needed, log command | Invalid format, wrong stage, ticket scaffold failure |
 | approve_brd | `approve BRD` | analysis | BRD exists | Append approval log entry, add BRD to approved artifacts, log command | BRD missing |
 | reject_architecture | `reject Architecture with notes: <text>` | architecture | Architecture doc exists; notes non-empty | Append rejection entry to approvals, set status context, log command | Missing notes, architecture doc missing |
+| prepare_manual_test | `prepare manual test` | quality | Acceptance test cases exist | Generate `08-quality/Manual_Test_Script.md`, set `manual_test_gate_status=prepared`, log command | Missing acceptance test cases, wrong stage |
+| start_manual_test | `start manual test` | quality | `manual_test_gate_status=prepared` | Set `manual_test_gate_status=in_progress`, log command | Manual test not prepared, wrong stage |
+| submit_manual_test_failed | `submit manual test failed: <title> | severity=<critical|high|medium|low> | details=<text>` | quality | `manual_test_gate_status` in `prepared` or `in_progress` or `failed` | Create issue `MTI-###`, append feedback, set `manual_test_gate_status=failed`, increment `open_manual_issues`, set `next_actor=software-developer`, log command | Invalid format, severity invalid, wrong stage |
+| resolve_manual_issue | `resolve manual issue MTI-<n> with notes: <text>` | quality | Issue exists and status `open` | Set issue status `resolved_pending_retest`, set `next_actor=sdet`, log command | Missing issue, issue not open, missing notes |
+| retest_manual_issue_passed | `retest manual issue MTI-<n> passed` | quality | Issue exists and status `resolved_pending_retest` | Set issue status `closed`, decrement `open_manual_issues`, log command | Missing issue, invalid status |
+| retest_manual_issue_failed | `retest manual issue MTI-<n> failed: <text>` | quality | Issue exists and status `resolved_pending_retest` | Set issue status `open`, set gate status `failed`, append retest failure detail, log command | Missing issue, invalid status, missing notes |
+| submit_manual_test_passed | `submit manual test passed` | quality | `open_manual_issues=0` and gate status not `not_started` | Set `manual_test_gate_status=passed`, `manual_test_last_result=passed`, log command | Open manual issues exist, manual test not started |
+| approve_manual_test_gate | `approve manual test gate` | quality | `manual_test_gate_status=passed`; `open_manual_issues=0`; manual artifacts exist | Append approval record, set `manual_test_gate_status=approved`, log command | Open issues, missing artifacts, invalid gate status |
 | show_blockers | `show blockers` | any | Project exists | Print blocker summary from state | Missing project state |
 | resume_stage | `resume current stage` | any | Project exists | Re-emit stage context summary, log command | Missing project state |
 | close_ticket | `close ticket` | delivery | Active ticket set; ticket, handoff, implementation plan, review report exist | Mark ticket closed context, clear active ticket, set next actor `sdet`, log command | Missing active ticket, missing required files |
@@ -33,3 +41,4 @@ All workflow commands are executed through:
 2. Every state-changing command writes a row to `00-governance/command-log.md`.
 3. Stack changes after lock require explicit human override in `decisions.md`.
 4. `close ticket` requires complete delivery evidence before handoff.
+5. Manual-test gate cannot be approved while `open_manual_issues > 0`.

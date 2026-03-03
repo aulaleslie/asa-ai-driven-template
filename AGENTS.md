@@ -22,7 +22,11 @@ This constitution defines non-negotiable operating rules for all agents and huma
    - Workflow commands must run via `scripts/command-dispatch.sh`.
 9. Stack lock governance is mandatory.
    - Stack cannot change after lock unless a human override is recorded in `00-governance/decisions.md` and approved.
-10. Release deployability evidence is mandatory.
+10. Manual-test quality gate is mandatory.
+    - Quality cannot pass without human execution of generated manual test script.
+11. Manual-test issue loop is strict.
+    - Any open manual-test issue blocks manual-test gate approval.
+12. Release deployability evidence is mandatory.
     - Release approval requires evidence for deployment using `docker compose up --build -d`.
 
 ## Required Operating Behavior
@@ -31,6 +35,7 @@ This constitution defines non-negotiable operating rules for all agents and huma
 - Every state-changing command writes to `00-governance/command-log.md`.
 - Rejections include concrete correction notes and owner.
 - Assumptions, decisions, and approvals are logged in governance files.
+- Manual-test issues must use `MTI-###` identifiers and lifecycle states.
 
 ## Stage Gate Outcomes
 
@@ -49,6 +54,7 @@ A handoff is invalid unless it includes:
 - Artifact index with paths
 - Stack profile reference
 - Deployment impact summary
+- Manual-test evidence reference for quality/release
 - Open risks and questions
 - Requested action and due-by expectation
 

@@ -124,6 +124,10 @@ active_epic: none
 active_ticket: none
 command_last: init-project
 deployment_contract: pending
+manual_test_gate_status: not_started
+manual_test_last_result: none
+open_manual_issues: 0
+manual_test_script_path: 08-quality/Manual_Test_Script.md
 STATE
 
 cat > "$dst/00-governance/stack-lock.yaml" <<STACK

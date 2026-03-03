@@ -81,6 +81,10 @@ state_machine:
         - projects/<project>/08-quality/Acceptance_Test_Cases.md
         - projects/<project>/08-quality/Regression_Checklist.md
         - projects/<project>/08-quality/QA_Reports.md
+        - projects/<project>/08-quality/Manual_Test_Script.md
+        - projects/<project>/08-quality/Manual_Test_Execution_Log.md
+        - projects/<project>/08-quality/Manual_Test_Feedback.md
+        - projects/<project>/08-quality/Manual_Test_Issues.md
         - projects/<project>/09-release/Deployment_Readiness_Evidence.md
       approval_gate: human_quality_approval
       next_responsible_role: project-manager
@@ -88,6 +92,8 @@ state_machine:
         stack_locked: true
         scope_locked: true
         deployment_contract: required
+        manual_test_gate_status: approved_required_for_release
+        open_manual_issues: 0_required_for_release_transition
     release:
       required_artifacts:
         - projects/<project>/09-release/Release_Readiness.md

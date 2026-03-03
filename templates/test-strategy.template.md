@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Define quality approach, test levels, and coverage priorities.
+Define quality approach, test levels, manual gate execution, and coverage priorities.
 
 ## Inputs
 
@@ -35,6 +35,25 @@ Define quality approach, test levels, and coverage priorities.
 - Compose validation approach:
 - Health and readiness checks:
 
+## Manual Test Gate Strategy
+
+- Runbook generation approach:
+- Human tester roles:
+- Entry criteria:
+- Exit criteria:
+
+## Human Execution Notes
+
+- Human preflight checklist:
+- Test data prerequisites:
+- Evidence recording instructions:
+
+## Issue Lifecycle Linkage (`MTI-*`)
+
+- Issue creation command:
+- Resolution/retest command flow:
+- Closure rules:
+
 ## Required Sections
 
 ## 1. Quality Objectives
@@ -57,6 +76,7 @@ Define quality approach, test levels, and coverage priorities.
 - [ ] Coverage priorities are explicit.
 - [ ] Exit criteria are measurable.
 - [ ] Deployability test coverage is explicit.
+- [ ] Manual-test gate strategy and evidence flow are explicit.
 
 ## Sign-Off
 

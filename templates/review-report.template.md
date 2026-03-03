@@ -33,6 +33,21 @@ Record structured review findings, severity, and disposition.
 - Deployment-affecting findings:
 - Compose contract status:
 
+## Manual Test Gate Strategy
+
+- Manual-test gate checkpoint covered:
+- Manual gate status at review time:
+
+## Human Execution Notes
+
+- Human test observations summary:
+- Blockers found during manual execution:
+
+## Issue Lifecycle Linkage (`MTI-*`)
+
+- Linked manual-test issues:
+- Rework/retest status:
+
 ## Required Sections
 
 ## 1. Review Scope
@@ -59,6 +74,7 @@ Record structured review findings, severity, and disposition.
 - [ ] Recommendation is justified by evidence.
 - [ ] Open items have owners.
 - [ ] Deployment-impact findings are explicit.
+- [ ] Manual-test issue linkage is explicit.
 
 ## Sign-Off
 

@@ -15,7 +15,7 @@ This repository is an operating system for specialized delivery agents:
 - SDET
 - Software Developer
 
-The framework enforces explicit handoffs, mandatory human approvals, stack lock governance, and release deployability contracts.
+The framework enforces explicit handoffs, mandatory human approvals, stack lock governance, manual quality gates, and release deployability contracts.
 
 ## Core Guarantees
 
@@ -23,14 +23,15 @@ The framework enforces explicit handoffs, mandatory human approvals, stack lock 
 2. Stack lock from the first intake command.
 3. Strict role specialization and no self-approval.
 4. Monorepo contract: `apps/`, `services/`, `infra/`, optional `packages/`.
-5. Release readiness requires deployment evidence for:
+5. Quality gate includes mandatory human manual-test execution using generated runbook.
+6. Release readiness requires deployment evidence for:
    - `docker compose up --build -d`
 
 ## Repository Layout
 
 - `agents/` role contracts, prompts, and checklists
 - `workflow/` lifecycle state machine, command registry, and gate rules
-- `templates/` reusable artifact templates and deployment templates
+- `templates/` reusable artifact templates and deployment/manual-test templates
 - `shared/` global standards, definitions, and monorepo contract
 - `projects/_template/` clone-ready project workspace skeleton
 - `scripts/` command engine and validation helpers
@@ -44,7 +45,14 @@ The framework enforces explicit handoffs, mandatory human approvals, stack lock 
    - `./scripts/command-dispatch.sh --project gym-erp --command "review scope" --actor business-analyst`
    - `./scripts/command-dispatch.sh --project gym-erp --command "lock scope" --actor project-manager`
    - `./scripts/command-dispatch.sh --project gym-erp --command "generate epics" --actor project-manager`
-3. Validate deployment readiness contract:
+3. Run manual-test gate inside quality stage:
+   - `./scripts/command-dispatch.sh --project gym-erp --command "prepare manual test" --actor sdet`
+   - `./scripts/command-dispatch.sh --project gym-erp --command "submit manual test failed: login flow broken | severity=high | details=login button returns 500" --actor human-tester`
+   - `./scripts/command-dispatch.sh --project gym-erp --command "resolve manual issue MTI-001 with notes: fixed API route mismatch" --actor software-developer`
+   - `./scripts/command-dispatch.sh --project gym-erp --command "retest manual issue MTI-001 passed" --actor human-tester`
+   - `./scripts/command-dispatch.sh --project gym-erp --command "approve manual test gate" --actor qa-lead`
+4. Validate gates:
+   - `./scripts/validate-manual-test-gate.sh projects/gym-erp`
    - `./scripts/validate-deployability.sh projects/gym-erp`
 
 ## Policy: Development vs Deployment
@@ -63,7 +71,7 @@ The framework enforces explicit handoffs, mandatory human approvals, stack lock 
 5. Design
 6. Planning
 7. Delivery
-8. Quality
+8. Quality (includes human manual-test gate)
 9. Release
 
 Every stage transition requires:

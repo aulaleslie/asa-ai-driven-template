@@ -60,6 +60,64 @@ command_registry:
       - notes_non_empty
     action_handler: handle_reject_architecture
     mutates_state: true
+  - id: prepare_manual_test
+    pattern: '^prepare manual test$'
+    required_stage: quality
+    guard_predicates:
+      - acceptance_cases_exist
+    action_handler: handle_prepare_manual_test
+    mutates_state: true
+  - id: start_manual_test
+    pattern: '^start manual test$'
+    required_stage: quality
+    guard_predicates:
+      - manual_test_prepared
+    action_handler: handle_start_manual_test
+    mutates_state: true
+  - id: submit_manual_test_failed
+    pattern: '^submit manual test failed: (.+) \| severity=(critical|high|medium|low) \| details=(.+)$'
+    required_stage: quality
+    guard_predicates:
+      - manual_test_started_or_prepared
+    action_handler: handle_submit_manual_test_failed
+    mutates_state: true
+  - id: resolve_manual_issue
+    pattern: '^resolve manual issue (MTI-[0-9]+) with notes: (.+)$'
+    required_stage: quality
+    guard_predicates:
+      - manual_issue_open
+    action_handler: handle_resolve_manual_issue
+    mutates_state: true
+  - id: retest_manual_issue_passed
+    pattern: '^retest manual issue (MTI-[0-9]+) passed$'
+    required_stage: quality
+    guard_predicates:
+      - manual_issue_pending_retest
+    action_handler: handle_retest_manual_issue_passed
+    mutates_state: true
+  - id: retest_manual_issue_failed
+    pattern: '^retest manual issue (MTI-[0-9]+) failed: (.+)$'
+    required_stage: quality
+    guard_predicates:
+      - manual_issue_pending_retest
+    action_handler: handle_retest_manual_issue_failed
+    mutates_state: true
+  - id: submit_manual_test_passed
+    pattern: '^submit manual test passed$'
+    required_stage: quality
+    guard_predicates:
+      - no_open_manual_issues
+    action_handler: handle_submit_manual_test_passed
+    mutates_state: true
+  - id: approve_manual_test_gate
+    pattern: '^approve manual test gate$'
+    required_stage: quality
+    guard_predicates:
+      - manual_test_passed
+      - no_open_manual_issues
+      - manual_artifacts_present
+    action_handler: handle_approve_manual_test_gate
+    mutates_state: true
   - id: show_blockers
     pattern: '^show blockers$'
     required_stage: any

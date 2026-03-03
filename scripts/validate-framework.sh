@@ -29,6 +29,14 @@ required_command_ids=(
   start_ticket
   approve_brd
   reject_architecture
+  prepare_manual_test
+  start_manual_test
+  submit_manual_test_failed
+  resolve_manual_issue
+  retest_manual_issue_passed
+  retest_manual_issue_failed
+  submit_manual_test_passed
+  approve_manual_test_gate
   show_blockers
   resume_stage
   close_ticket
@@ -54,6 +62,14 @@ required_handlers=(
   handle_start_ticket
   handle_approve_brd
   handle_reject_architecture
+  handle_prepare_manual_test
+  handle_start_manual_test
+  handle_submit_manual_test_failed
+  handle_resolve_manual_issue
+  handle_retest_manual_issue_passed
+  handle_retest_manual_issue_failed
+  handle_submit_manual_test_passed
+  handle_approve_manual_test_gate
   handle_show_blockers
   handle_resume_stage
   handle_close_ticket
@@ -81,11 +97,31 @@ required_state_keys=(
   active_ticket
   command_last
   deployment_contract
+  manual_test_gate_status
+  manual_test_last_result
+  open_manual_issues
+  manual_test_script_path
 )
 
 for key in "${required_state_keys[@]}"; do
   if ! grep -Eq "^${key}:" projects/_template/00-governance/project-state.yaml; then
     log "MISSING state key in template: $key"
+    missing=1
+  fi
+done
+
+required_artifacts=(
+  projects/_template/08-quality/Manual_Test_Script.md
+  projects/_template/08-quality/Manual_Test_Execution_Log.md
+  projects/_template/08-quality/Manual_Test_Feedback.md
+  projects/_template/08-quality/Manual_Test_Issues.md
+  scripts/generate-manual-test-script.sh
+  scripts/validate-manual-test-gate.sh
+)
+
+for f in "${required_artifacts[@]}"; do
+  if [ ! -f "$f" ]; then
+    log "MISSING required framework artifact: $f"
     missing=1
   fi
 done

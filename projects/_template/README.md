@@ -13,6 +13,7 @@ Copy this directory to `projects/<project-slug>` and execute delivery via comman
 - `06-planning/` roadmap, epics, tickets, sprint plan
 - `07-delivery/` implementation packets by epic/ticket
 - `08-quality/` strategy, test cases, QA evidence
+- `08-quality/` strategy, test cases, QA evidence, manual-test gate artifacts
 - `09-release/` readiness and release records
 - `apps/` frontend applications
 - `services/` backend services/workers
@@ -25,3 +26,4 @@ Copy this directory to `projects/<project-slug>` and execute delivery via comman
 - Record approvals/rejections in `00-governance/approvals.md`.
 - Record command mutations in `00-governance/command-log.md`.
 - Respect stack lock in `00-governance/stack-lock.yaml`.
+- Manual-test gate requires generated script execution and issue closure before quality approval.

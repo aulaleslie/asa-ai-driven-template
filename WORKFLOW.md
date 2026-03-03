@@ -67,8 +67,8 @@ This framework runs as a command-driven, document-first state machine.
 ## 8. Quality
 
 - Intent: validate acceptance and deployability contract.
-- Outputs: test strategy, acceptance cases, QA report, deployability validation evidence.
-- Gate: human quality approval.
+- Outputs: test strategy, acceptance cases, QA report, manual test runbook/execution/issues, deployability validation evidence.
+- Gate: human quality approval only after manual-test gate approval and zero open manual-test issues.
 - Next role: Project Manager.
 
 ## 9. Release
@@ -86,3 +86,4 @@ No transition is valid without:
 2. Human gate outcome.
 3. Updated `project-state.yaml`.
 4. Command audit entry in `command-log.md`.
+5. For quality -> release, `manual_test_gate_status=approved` and `open_manual_issues=0`.

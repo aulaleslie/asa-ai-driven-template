@@ -58,6 +58,10 @@ keys=(
   active_ticket
   command_last
   deployment_contract
+  manual_test_gate_status
+  manual_test_last_result
+  open_manual_issues
+  manual_test_script_path
 )
 
 if [ "$format" = "json" ]; then
@@ -80,7 +84,7 @@ fi
 log "State summary for $project_path"
 for key in "${keys[@]}"; do
   value="$(get_value "$key" "$state_file")"
-  printf '%-20s %s\n' "$key:" "${value:-<missing>}"
+  printf '%-24s %s\n' "$key:" "${value:-<missing>}"
 done
 
 # TODO: include derived status checks (for example missing approvals or artifact drift).

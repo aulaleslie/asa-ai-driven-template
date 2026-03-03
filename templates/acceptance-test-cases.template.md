@@ -32,6 +32,21 @@ Capture acceptance-level verification mapped to requirements.
 - Deployment-related acceptance cases:
 - Service startup/dependency checks:
 
+## Manual Test Gate Strategy
+
+- Which cases are human-manual mandatory:
+- Human run order constraints:
+
+## Human Execution Notes
+
+- Manual execution instructions per case:
+- Evidence capture notes:
+
+## Issue Lifecycle Linkage (`MTI-*`)
+
+- Issue mapping field for failed cases:
+- Retest mapping procedure:
+
 ## Required Sections
 
 | Test ID | Requirement Ref | Preconditions | Steps | Expected Result | Status | Notes |
@@ -50,6 +65,7 @@ Capture acceptance-level verification mapped to requirements.
 - [ ] Preconditions and expected results are explicit.
 - [ ] Negative/edge cases are included where relevant.
 - [ ] Deployment acceptance coverage is present.
+- [ ] Manual-test issue linkage is documented for failures.
 
 ## Sign-Off
 

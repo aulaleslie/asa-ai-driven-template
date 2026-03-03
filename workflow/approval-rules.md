@@ -14,6 +14,14 @@
 - Technical approvals require technical reviewers.
 - Business approvals require business owners.
 - Release approval requires review of deployment evidence.
+- Manual-test gate approval requires a human reviewer (not the issue author).
+
+## Manual-Test Gate Rules
+
+1. Manual-test gate approval is forbidden when `open_manual_issues > 0`.
+2. Manual-test rejections must reference issue IDs (`MTI-###`) requiring rework.
+3. Manual test evidence must include script, execution, feedback, and issues artifacts.
+4. Quality -> release transition is blocked until manual-test gate is approved.
 
 ## Stack Change Override Process
 

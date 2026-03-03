@@ -11,8 +11,18 @@ Each stage gate enforces quality, governance, and deployment readiness.
 | Design | UX flows + wireframes + component map | Product/Design Reviewer | Core journeys and edge states complete | Key journeys missing |
 | Planning | Roadmap + epics + tickets + sprint plan | Delivery Manager | Plan is sequenced and estimable | Work items are ambiguous |
 | Delivery | Ticket packet + review report | Engineering Manager | Ticket meets DoD and review quality | Incomplete implementation evidence |
-| Quality | Test strategy + acceptance cases + QA report + deployment evidence | QA Lead | Acceptance criteria pass and deployability checks pass | Critical defects or deployability gaps |
-| Release | Readiness + release notes + known issues + compose manifest refs | Release Approver | `docker compose up --build -d` evidence accepted | Blocking risk, missing deployment evidence |
+| Quality | Test strategy + acceptance cases + QA report + manual test artifacts + deployment evidence | QA Lead | Acceptance criteria pass, manual-test gate approved, open manual-test issues = 0, deployability checks pass | Critical defects, unapproved manual test gate, or open manual-test issues |
+| Release | Readiness + release notes + known issues + compose manifest refs | Release Approver | `docker compose up --build -d` evidence accepted and quality manual-test gate already approved | Blocking risk, missing deployment evidence, or missing manual-test approval |
+
+## Manual Test Gate (Inside Quality)
+
+Quality pass requires:
+
+1. Generated manual test runbook exists.
+2. Human executes runbook and records results.
+3. Manual feedback is captured.
+4. Any issues follow strict lifecycle until closed.
+5. Manual-test gate is explicitly approved.
 
 ## Deployment Contract Checks
 
