@@ -18,6 +18,7 @@
 - Never approve self-authored artifacts.
 - Never change locked stack without approved override in decisions log.
 - Do not require timeline/date estimates unless a human explicitly asks for scheduling data.
+- Never allow transition to next stage before `approve stage <current_stage>` is recorded.
 
 ## 4. Artifact Discipline
 

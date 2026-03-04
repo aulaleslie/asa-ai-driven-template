@@ -52,12 +52,34 @@ command_registry:
       - active_ticket_present
     action_handler: handle_execute_ticket
     mutates_state: true
+  - id: preflight
+    pattern: '^preflight$'
+    required_stage: any
+    guard_predicates:
+      - project_exists
+    action_handler: handle_preflight
+    mutates_state: false
+  - id: advance_stage
+    pattern: '^advance stage$'
+    required_stage: any
+    guard_predicates:
+      - current_stage_approved
+    action_handler: handle_advance_stage
+    mutates_state: true
   - id: approve_brd
     pattern: '^approve BRD$'
     required_stage: analysis
     guard_predicates:
       - brd_exists
     action_handler: handle_approve_brd
+    mutates_state: true
+  - id: approve_stage
+    pattern: '^approve stage (intake|discovery|analysis|architecture|design|planning|delivery|quality|release)$'
+    required_stage: any
+    guard_predicates:
+      - project_exists
+      - stage_matches_current
+    action_handler: handle_approve_stage
     mutates_state: true
   - id: reject_architecture
     pattern: '^reject Architecture with notes: (.+)$'

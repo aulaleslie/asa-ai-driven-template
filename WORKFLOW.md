@@ -6,9 +6,9 @@ This framework runs as a command-driven, document-first state machine.
 
 1. Commands are executed through `scripts/command-dispatch.sh`.
 2. Dispatcher validates guards, applies deterministic updates, and logs outcomes.
-3. Human approvals control stage gates and sensitive changes.
+3. Human approvals control stage gates and sensitive changes (`approve stage <stage>`).
 4. Project state, command logs, approvals, and handoffs are the operational source of truth.
-5. Project scaffolding is always in-place in the current repository.
+5. Project scaffolding is always in repository root unless an explicit `--project` workspace is selected.
 
 ## Stack Lock Checkpoint
 
@@ -88,3 +88,9 @@ No transition is valid without:
 3. Updated `project-state.yaml`.
 4. Command audit entry in `command-log.md`.
 5. For quality -> release, `manual_test_gate_status=approved` and `open_manual_issues=0`.
+
+## Gate Entry Point
+
+- Single gate command: `approve stage <intake|discovery|analysis|architecture|design|planning|delivery|quality|release>`.
+- Pre-check command: `preflight` (shows exact blockers before approval/advance).
+- Transition to the next stage is blocked until current stage approval exists in `00-governance/approvals.md`.

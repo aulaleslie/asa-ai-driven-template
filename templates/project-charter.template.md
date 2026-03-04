@@ -18,7 +18,7 @@ Define project intent, business outcome, scope boundaries, and governance baseli
 
 ## Stack Profile Reference
 
-- Stack lock file: `projects/<project>/00-governance/stack-lock.yaml`
+- Stack lock file: `<workspace>/00-governance/stack-lock.yaml`
 - Stack lock status:
 
 ## Monorepo Path Impact

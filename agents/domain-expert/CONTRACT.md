@@ -19,7 +19,7 @@ Validated glossary entries, domain constraints, exception rules, domain review f
 Additional hardening responsibilities:
 
 - Command-driven execution role: Supports command-driven review cycles by providing explicit domain corrections.
-- Monorepo path mapping responsibility: projects/<project>/03-analysis and shared/glossary references.
+- Monorepo path mapping responsibility: <workspace>/03-analysis and shared/glossary references.
 - Deployment contract responsibility: Confirms domain-specific deployment and data constraints are reflected in release readiness notes.
 
 ## 5. Must Not Do

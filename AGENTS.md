@@ -17,9 +17,10 @@ This constitution defines non-negotiable operating rules for all agents and huma
 6. Artifact-required work.
    - Decisions and actions must be reflected in versioned artifacts.
 7. Project state tracking is mandatory.
-   - Canonical state is `projects/<project>/00-governance/project-state.yaml`.
+   - Canonical state is `00-governance/project-state.yaml` in repository root (or explicitly selected workspace path when `--project` is used).
 8. Command execution must use dispatcher.
    - Workflow commands must run via `scripts/command-dispatch.sh`.
+   - No alternate gate entry points are allowed for stage progression.
 9. Stack lock governance is mandatory.
    - Stack cannot change after lock unless a human override is recorded in `00-governance/decisions.md` and approved.
 10. Manual-test quality gate is mandatory.
@@ -34,6 +35,8 @@ This constitution defines non-negotiable operating rules for all agents and huma
     - During delivery, active tickets must drive implementation work before producing additional planning artifacts.
 15. No timeline estimation by default.
     - Date/time estimates are optional and only provided when explicitly requested by a human.
+16. Stage progression is approval-locked.
+    - No stage transition may occur until the current stage is explicitly approved via gate command.
 
 ## Required Operating Behavior
 

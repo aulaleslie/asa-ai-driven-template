@@ -19,7 +19,7 @@ UX flows, wireframes, component map, usability risks and design handoff packet.
 Additional hardening responsibilities:
 
 - Command-driven execution role: Executes design-stage command tasks with explicit artifact linkage.
-- Monorepo path mapping responsibility: projects/<project>/05-design and apps/ path impact notes.
+- Monorepo path mapping responsibility: <workspace>/05-design and apps/ path impact notes.
 - Deployment contract responsibility: Flags UI deployment-impact concerns for frontend services in compose manifest.
 
 ## 5. Must Not Do

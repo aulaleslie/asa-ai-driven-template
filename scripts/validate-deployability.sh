@@ -3,10 +3,11 @@ set -euo pipefail
 
 usage() {
   cat <<USAGE
-Usage: $(basename "$0") <project-path>
+Usage: $(basename "$0") [project-path]
 
 Validate deployability contract artifacts for release.
-Example: $(basename "$0") projects/gym-erp
+Default project path is repository root.
+Example: $(basename "$0") .
 USAGE
 }
 
@@ -24,9 +25,12 @@ if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
   exit 0
 fi
 
-[ "$#" -eq 1 ] || { usage; exit 1; }
+if [ "$#" -gt 1 ]; then
+  usage
+  exit 1
+fi
 
-project_path="$1"
+project_path="${1:-.}"
 compose_file="$project_path/infra/deploy/docker-compose.yml"
 env_file="$project_path/infra/deploy/.env.example"
 deploy_readme="$project_path/infra/deploy/README.md"

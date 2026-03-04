@@ -5,6 +5,7 @@
 - [ ] Active stage and command context are confirmed.
 - [ ] Required inputs and dependencies are available.
 - [ ] Stack lock and scope lock status were reviewed.
+- [ ] Upstream design/plan artifacts are explicitly approved before implementation starts.
 
 ## 2. Execution Checklist
 
@@ -12,6 +13,7 @@
 - [ ] Monorepo path impact is explicit.
 - [ ] Deployment impact section is completed when applicable.
 - [ ] State-changing actions are reflected in command log.
+- [ ] Work proceeds autonomously on active ticket until blocker or gate boundary.
 
 ## 3. Handoff Checklist
 

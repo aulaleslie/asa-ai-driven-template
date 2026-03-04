@@ -7,6 +7,9 @@
 3. Approval entries must reference artifact paths and a record reference.
 4. Rejections must include concrete corrections and owner.
 5. Approval outcomes must be logged in governance artifacts.
+6. Stage gate approvals use command `approve stage <stage>` and must match current stage.
+7. Next-stage transition is forbidden until current stage approval record exists.
+8. Use `preflight` before `approve stage` to surface missing artifacts and blockers.
 
 ## Separation of Duties
 

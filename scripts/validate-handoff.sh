@@ -6,7 +6,7 @@ usage() {
 Usage: $(basename "$0") <handoff-file>
 
 Validate that a handoff document has required fields and artifact path references.
-Example: $(basename "$0") projects/gym-erp/07-delivery/epic-1/ticket-1/handoff.md
+Example: $(basename "$0") 07-delivery/epic-1/ticket-1/handoff.md
 USAGE
 }
 

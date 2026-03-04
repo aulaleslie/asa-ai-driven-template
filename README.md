@@ -43,29 +43,39 @@ The framework enforces explicit handoffs, mandatory human approvals, stack lock 
 
 1. Start project from intake command (stack lock initialized):
    - `./scripts/command-dispatch.sh --command "to project manager: I want to build gym erp | fe=next | be=nest | db=sqlite | cache=redis" --actor human-owner`
-2. Execute governed workflow commands:
-   - `./scripts/command-dispatch.sh --project gym-erp --command "review scope" --actor business-analyst`
-   - `./scripts/command-dispatch.sh --project gym-erp --command "lock scope" --actor project-manager`
-   - `./scripts/command-dispatch.sh --project gym-erp --command "generate epics" --actor project-manager`
+2. Approve and move through stage gates (single command entry point):
+   - `./scripts/command-dispatch.sh --command "preflight" --actor project-manager`
+   - `./scripts/command-dispatch.sh --command "approve stage intake" --actor sponsor`
+   - `./scripts/command-dispatch.sh --command "advance stage" --actor project-manager`
+   - `./scripts/command-dispatch.sh --command "review scope" --actor business-analyst`
+   - `./scripts/command-dispatch.sh --command "approve stage discovery" --actor product-owner`
+   - `./scripts/command-dispatch.sh --command "lock scope" --actor project-manager`
+   - `./scripts/command-dispatch.sh --command "approve BRD" --actor product-owner`
+   - `./scripts/command-dispatch.sh --command "approve stage analysis" --actor product-owner`
+   - `./scripts/command-dispatch.sh --command "advance stage" --actor project-manager`
+   - `./scripts/command-dispatch.sh --command "generate epics" --actor project-manager`
+   - `./scripts/command-dispatch.sh --command "approve stage planning" --actor delivery-manager`
 3. Move into delivery execution:
-   - `./scripts/command-dispatch.sh --project gym-erp --command "start epic-1" --actor project-manager`
-   - `./scripts/command-dispatch.sh --project gym-erp --command "start epic-1-ticket-1" --actor software-developer`
-   - `./scripts/command-dispatch.sh --project gym-erp --command "execute current ticket" --actor software-developer`
-   - `./scripts/command-dispatch.sh --project gym-erp --command "close ticket" --actor software-developer`
+   - `./scripts/command-dispatch.sh --command "start epic-1" --actor project-manager`
+   - `./scripts/command-dispatch.sh --command "start epic-1-ticket-1" --actor software-developer`
+   - `./scripts/command-dispatch.sh --command "execute current ticket" --actor software-developer`
+   - `./scripts/command-dispatch.sh --command "close ticket" --actor software-developer`
 4. Run manual-test gate inside quality stage:
-   - `./scripts/command-dispatch.sh --project gym-erp --command "prepare manual test" --actor sdet`
-   - `./scripts/command-dispatch.sh --project gym-erp --command "submit manual test failed: login flow broken | severity=high | details=login button returns 500" --actor human-tester`
-   - `./scripts/command-dispatch.sh --project gym-erp --command "resolve manual issue MTI-001 with notes: fixed API route mismatch" --actor software-developer`
-   - `./scripts/command-dispatch.sh --project gym-erp --command "retest manual issue MTI-001 passed" --actor human-tester`
-   - `./scripts/command-dispatch.sh --project gym-erp --command "approve manual test gate" --actor qa-lead`
+   - `./scripts/command-dispatch.sh --command "prepare manual test" --actor sdet`
+   - `./scripts/command-dispatch.sh --command "submit manual test failed: login flow broken | severity=high | details=login button returns 500" --actor human-tester`
+   - `./scripts/command-dispatch.sh --command "resolve manual issue MTI-001 with notes: fixed API route mismatch" --actor software-developer`
+   - `./scripts/command-dispatch.sh --command "retest manual issue MTI-001 passed" --actor human-tester`
+   - `./scripts/command-dispatch.sh --command "approve manual test gate" --actor qa-lead`
+   - `./scripts/command-dispatch.sh --command "approve stage quality" --actor qa-lead`
 5. Validate gates:
-   - `./scripts/validate-manual-test-gate.sh projects/gym-erp`
-   - `./scripts/validate-deployability.sh projects/gym-erp`
+   - `./scripts/validate-manual-test-gate.sh .`
+   - `./scripts/validate-deployability.sh .`
 
 ## Scaffolding Behavior
 
 - This template is used inside an already created repository.
-- Commands scaffold project workspaces under `projects/` in the current repository.
+- Commands scaffold project workspaces in repository root by default.
+- `--project` remains available for legacy or multi-workspace usage under `projects/`.
 - The framework never creates or initializes a separate repository.
 
 ## Policy: Development vs Deployment

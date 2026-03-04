@@ -6,7 +6,7 @@ usage() {
 Usage: $(basename "$0") <project-path> <epic-id> <ticket-id>
 
 Bootstrap delivery files for a ticket and update project state.
-Example: $(basename "$0") projects/gym-erp epic-2 ticket-5
+Example: $(basename "$0") . epic-2 ticket-5
 USAGE
 }
 

@@ -18,6 +18,7 @@ Required top-level structure for generated systems:
 ## Repository Scaffolding Rule
 
 - Scaffold project workspaces only inside the current repository.
+- Default workspace target is repository root (`./`); use explicit workspace path only when needed.
 - Never create or initialize a new repository as part of workflow commands.
 
 ## Deployment Naming Standards

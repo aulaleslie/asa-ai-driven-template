@@ -22,6 +22,7 @@ Additional hardening responsibilities:
 - Monorepo path mapping responsibility: apps/, services/, optional packages/, infra/deploy references in delivery docs.
 - Deployment contract responsibility: Ensures implementation artifacts include containerization and compose-impact readiness notes.
 - Delivery behavior responsibility: Default to execution-first work on active ticket; avoid timeline estimation unless explicitly requested.
+- Independent delivery responsibility: Once design/plan artifacts are approved, proceed autonomously through implementation/checks until explicit blocker or gate boundary.
 
 ## 5. Must Not Do
 

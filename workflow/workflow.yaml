@@ -1,10 +1,12 @@
 version: 2
 state_machine:
+  command_entrypoint: ./scripts/command-dispatch.sh
+  stage_gate_command: approve stage <stage>
   stages:
     intake:
       required_artifacts:
-        - projects/<project>/01-intake/request.md
-        - projects/<project>/00-governance/stack-lock.yaml
+        - <workspace>/01-intake/request.md
+        - <workspace>/00-governance/stack-lock.yaml
       approval_gate: human_intake_approval
       next_responsible_role: project-manager
       invariants:
@@ -12,20 +14,20 @@ state_machine:
         scope_locked: false
     discovery:
       required_artifacts:
-        - projects/<project>/02-discovery/Project_Charter.md
-        - projects/<project>/02-discovery/Scope_In.md
-        - projects/<project>/02-discovery/Scope_Out.md
-        - projects/<project>/02-discovery/Open_Questions.md
+        - <workspace>/02-discovery/Project_Charter.md
+        - <workspace>/02-discovery/Scope_In.md
+        - <workspace>/02-discovery/Scope_Out.md
+        - <workspace>/02-discovery/Open_Questions.md
       approval_gate: human_scope_approval
       next_responsible_role: business-analyst
       invariants:
         stack_locked: true
     analysis:
       required_artifacts:
-        - projects/<project>/03-analysis/BRD.md
-        - projects/<project>/03-analysis/User_Stories.md
-        - projects/<project>/03-analysis/Business_Rules.md
-        - projects/<project>/03-analysis/Domain_Glossary.md
+        - <workspace>/03-analysis/BRD.md
+        - <workspace>/03-analysis/User_Stories.md
+        - <workspace>/03-analysis/Business_Rules.md
+        - <workspace>/03-analysis/Domain_Glossary.md
       approval_gate: human_requirements_approval
       next_responsible_role: solution-architect
       invariants:
@@ -33,10 +35,10 @@ state_machine:
         scope_locked: true
     architecture:
       required_artifacts:
-        - projects/<project>/04-architecture/Architecture.md
-        - projects/<project>/04-architecture/NFR.md
-        - projects/<project>/04-architecture/C4_Diagrams.md
-        - projects/<project>/04-architecture/adr/ADR-001.md
+        - <workspace>/04-architecture/Architecture.md
+        - <workspace>/04-architecture/NFR.md
+        - <workspace>/04-architecture/C4_Diagrams.md
+        - <workspace>/04-architecture/adr/ADR-001.md
       approval_gate: human_architecture_approval
       next_responsible_role: ui-ux-designer
       invariants:
@@ -44,9 +46,9 @@ state_machine:
         scope_locked: true
     design:
       required_artifacts:
-        - projects/<project>/05-design/UX_Flows.md
-        - projects/<project>/05-design/Wireframes.md
-        - projects/<project>/05-design/Component_Map.md
+        - <workspace>/05-design/UX_Flows.md
+        - <workspace>/05-design/Wireframes.md
+        - <workspace>/05-design/Component_Map.md
       approval_gate: human_design_approval
       next_responsible_role: project-manager
       invariants:
@@ -54,10 +56,10 @@ state_machine:
         scope_locked: true
     planning:
       required_artifacts:
-        - projects/<project>/06-planning/Roadmap.md
-        - projects/<project>/06-planning/Epics.md
-        - projects/<project>/06-planning/Tickets.md
-        - projects/<project>/06-planning/Sprint_Plan.md
+        - <workspace>/06-planning/Roadmap.md
+        - <workspace>/06-planning/Epics.md
+        - <workspace>/06-planning/Tickets.md
+        - <workspace>/06-planning/Sprint_Plan.md
       approval_gate: human_plan_approval
       next_responsible_role: software-developer
       invariants:
@@ -65,11 +67,11 @@ state_machine:
         scope_locked: true
     delivery:
       required_artifacts:
-        - projects/<project>/07-delivery/epic-1/epic.md
-        - projects/<project>/07-delivery/epic-1/ticket-1/ticket.md
-        - projects/<project>/07-delivery/epic-1/ticket-1/implementation-plan.md
-        - projects/<project>/07-delivery/epic-1/ticket-1/handoff.md
-        - projects/<project>/07-delivery/epic-1/ticket-1/review-report.md
+        - <workspace>/07-delivery/epic-1/epic.md
+        - <workspace>/07-delivery/epic-1/ticket-1/ticket.md
+        - <workspace>/07-delivery/epic-1/ticket-1/implementation-plan.md
+        - <workspace>/07-delivery/epic-1/ticket-1/handoff.md
+        - <workspace>/07-delivery/epic-1/ticket-1/review-report.md
       approval_gate: human_ticket_approval
       next_responsible_role: sdet
       invariants:
@@ -77,15 +79,15 @@ state_machine:
         scope_locked: true
     quality:
       required_artifacts:
-        - projects/<project>/08-quality/Test_Strategy.md
-        - projects/<project>/08-quality/Acceptance_Test_Cases.md
-        - projects/<project>/08-quality/Regression_Checklist.md
-        - projects/<project>/08-quality/QA_Reports.md
-        - projects/<project>/08-quality/Manual_Test_Script.md
-        - projects/<project>/08-quality/Manual_Test_Execution_Log.md
-        - projects/<project>/08-quality/Manual_Test_Feedback.md
-        - projects/<project>/08-quality/Manual_Test_Issues.md
-        - projects/<project>/09-release/Deployment_Readiness_Evidence.md
+        - <workspace>/08-quality/Test_Strategy.md
+        - <workspace>/08-quality/Acceptance_Test_Cases.md
+        - <workspace>/08-quality/Regression_Checklist.md
+        - <workspace>/08-quality/QA_Reports.md
+        - <workspace>/08-quality/Manual_Test_Script.md
+        - <workspace>/08-quality/Manual_Test_Execution_Log.md
+        - <workspace>/08-quality/Manual_Test_Feedback.md
+        - <workspace>/08-quality/Manual_Test_Issues.md
+        - <workspace>/09-release/Deployment_Readiness_Evidence.md
       approval_gate: human_quality_approval
       next_responsible_role: project-manager
       invariants:
@@ -96,10 +98,10 @@ state_machine:
         open_manual_issues: 0_required_for_release_transition
     release:
       required_artifacts:
-        - projects/<project>/09-release/Release_Readiness.md
-        - projects/<project>/09-release/Release_Notes.md
-        - projects/<project>/09-release/Known_Issues.md
-        - projects/<project>/infra/deploy/docker-compose.yml
+        - <workspace>/09-release/Release_Readiness.md
+        - <workspace>/09-release/Release_Notes.md
+        - <workspace>/09-release/Known_Issues.md
+        - <workspace>/infra/deploy/docker-compose.yml
       approval_gate: human_release_approval
       next_responsible_role: project-manager
       invariants:

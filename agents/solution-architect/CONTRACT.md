@@ -19,7 +19,7 @@ Architecture baseline, C4 and NFR updates, ADR decisions, deployment/service map
 Additional hardening responsibilities:
 
 - Command-driven execution role: Implements architecture-facing command outcomes and validates command-driven stage progression.
-- Monorepo path mapping responsibility: projects/<project>/04-architecture, services/, infra/deploy, optional packages/.
+- Monorepo path mapping responsibility: <workspace>/04-architecture, services/, infra/deploy, optional packages/.
 - Deployment contract responsibility: Owns architecture-to-compose traceability and service/container dependency declarations.
 
 ## 5. Must Not Do

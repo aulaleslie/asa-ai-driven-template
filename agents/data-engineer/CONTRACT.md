@@ -19,7 +19,7 @@ Data model definitions, validation rules, integration assumptions, data quality 
 Additional hardening responsibilities:
 
 - Command-driven execution role: Supports command-driven updates that affect data artifacts and quality controls.
-- Monorepo path mapping responsibility: services/ data modules, migrations, projects/<project>/analysis and architecture docs.
+- Monorepo path mapping responsibility: services/ data modules, migrations, <workspace>/analysis and architecture docs.
 - Deployment contract responsibility: Ensures data dependencies are represented in deployment contracts and environment requirements.
 
 ## 5. Must Not Do

@@ -6,7 +6,7 @@ usage() {
 Usage: $(basename "$0") <project-path> <stage>
 
 Start or resume a stage by updating project-state.yaml with transition guards.
-Example: $(basename "$0") projects/gym-erp analysis
+Example: $(basename "$0") . analysis
 USAGE
 }
 
@@ -87,6 +87,14 @@ LOG
   echo "| $(date -u +%Y-%m-%dT%H:%M:%SZ) | $actor | $command | $result | $notes |" >> "$log_file"
 }
 
+has_stage_approval() {
+  local project_path="$1"
+  local stage="$2"
+  local approvals="$project_path/00-governance/approvals.md"
+  [ -f "$approvals" ] || return 1
+  grep -Eiq "\|[[:space:]]*${stage}[[:space:]]*\|.*\|[[:space:]]*approved[[:space:]]*\|" "$approvals"
+}
+
 if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
   usage
   exit 0
@@ -124,6 +132,16 @@ if [ "$current_stage" != "$target_stage" ]; then
     fi
   done
   [ "$is_allowed" = true ] || die "transition '$current_stage' -> '$target_stage' is not allowed"
+
+  if [ "$target_stage" != "blocked" ] && [ "$target_stage" != "cancelled" ]; then
+    case "$current_stage" in
+      blocked|cancelled|released)
+        ;;
+      *)
+        has_stage_approval "$project_path" "$current_stage" || die "stage '$current_stage' is not approved. run 'approve stage $current_stage' before transitioning."
+        ;;
+    esac
+  fi
 fi
 
 if [ "$current_stage" = "quality" ] && [ "$target_stage" = "release" ]; then

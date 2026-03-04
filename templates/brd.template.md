@@ -18,7 +18,7 @@ Translate business objectives into verifiable requirements.
 
 ## Stack Profile Reference
 
-- Stack lock file: `projects/<project>/00-governance/stack-lock.yaml`
+- Stack lock file: `<workspace>/00-governance/stack-lock.yaml`
 - Stack values validated:
 
 ## Monorepo Path Impact

@@ -1,6 +1,6 @@
 # Project Workspace Template
 
-Copy this directory to `projects/<project-slug>` and execute delivery via command dispatcher.
+Scaffold this workspace in repository root by default and execute delivery via command dispatcher.
 
 ## Folder Map
 
@@ -12,7 +12,6 @@ Copy this directory to `projects/<project-slug>` and execute delivery via comman
 - `05-design/` UX and component mapping
 - `06-planning/` delivery sequence, epics, tickets, execution plan
 - `07-delivery/` implementation packets by epic/ticket
-- `08-quality/` strategy, test cases, QA evidence
 - `08-quality/` strategy, test cases, QA evidence, manual-test gate artifacts
 - `09-release/` readiness and release records
 - `apps/` frontend applications

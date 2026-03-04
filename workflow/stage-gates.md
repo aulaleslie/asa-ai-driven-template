@@ -38,3 +38,9 @@ Quality and Release must include:
 - `approved`: proceed.
 - `rejected`: revise in same stage.
 - `blocked`: external dependency prevents continuation.
+
+## Gate Command
+
+- Stage approvals are recorded through `approve stage <stage>` command.
+- Pre-check gate readiness through `preflight` to list exact blockers.
+- Transition commands must fail when current stage is not approved.

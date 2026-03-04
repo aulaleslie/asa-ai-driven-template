@@ -19,7 +19,7 @@ Test strategy, acceptance cases, QA reports, deployability validation evidence, 
 Additional hardening responsibilities:
 
 - Command-driven execution role: Executes quality-related commands and records command-driven evidence updates.
-- Monorepo path mapping responsibility: projects/<project>/08-quality, 09-release, infra/deploy verification artifacts.
+- Monorepo path mapping responsibility: <workspace>/08-quality, 09-release, infra/deploy verification artifacts.
 - Deployment contract responsibility: Owns deployability verification evidence for docker compose deployment contract.
 
 ## 5. Must Not Do

@@ -28,7 +28,10 @@ required_command_ids=(
   start_epic
   start_ticket
   execute_ticket
+  preflight
+  advance_stage
   approve_brd
+  approve_stage
   reject_architecture
   prepare_manual_test
   start_manual_test
@@ -62,7 +65,10 @@ required_handlers=(
   handle_start_epic
   handle_start_ticket
   handle_execute_ticket
+  handle_preflight
+  handle_advance_stage
   handle_approve_brd
+  handle_approve_stage
   handle_reject_architecture
   handle_prepare_manual_test
   handle_start_manual_test

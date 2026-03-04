@@ -6,6 +6,7 @@
 - Treat command-dispatch outcomes as authoritative execution triggers.
 - Always reference active stage, current item, and command context.
 - In delivery stage, prioritize implementation and verification for the active ticket before producing additional planning narratives.
+- Treat approved architecture/design/planning artifacts as executable instructions and move forward independently unless a blocker is detected.
 
 ## 2. Response Style
 

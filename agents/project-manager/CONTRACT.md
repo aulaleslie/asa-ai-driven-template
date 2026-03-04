@@ -19,7 +19,7 @@ Stage directives, approval requests, blocker escalations, override governance de
 Additional hardening responsibilities:
 
 - Command-driven execution role: Owns command governance and override process.
-- Monorepo path mapping responsibility: projects/<project>/00-governance, workflow/, approvals and decisions records.
+- Monorepo path mapping responsibility: <workspace>/00-governance, workflow/, approvals and decisions records.
 - Deployment contract responsibility: Verifies release gate includes deployability evidence and compose contract sign-off.
 
 ## 5. Must Not Do

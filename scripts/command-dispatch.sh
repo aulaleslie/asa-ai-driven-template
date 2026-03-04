@@ -4,13 +4,17 @@ set -euo pipefail
 usage() {
   cat <<USAGE
 Usage:
-  $(basename "$0") --command "<phrase>" [--project <slug>] --actor <actor-id>
+  $(basename "$0") --command "<phrase>" [--project <slug-or-path>] --actor <actor-id>
+
+If --project is omitted, dispatcher uses root workspace when ./00-governance/project-state.yaml exists.
 
 Examples:
   $(basename "$0") --command "to project manager: I want to build gym erp | fe=next | be=nest | db=sqlite | cache=redis" --actor human-owner
-  $(basename "$0") --project gym-erp --command "lock scope" --actor project-manager
-  $(basename "$0") --project gym-erp --command "execute current ticket" --actor software-developer
-  $(basename "$0") --project gym-erp --command "prepare manual test" --actor sdet
+  $(basename "$0") --command "preflight" --actor project-manager
+  $(basename "$0") --command "approve stage intake" --actor sponsor
+  $(basename "$0") --command "lock scope" --actor project-manager
+  $(basename "$0") --command "execute current ticket" --actor software-developer
+  $(basename "$0") --command "prepare manual test" --actor sdet
 USAGE
 }
 
@@ -38,11 +42,40 @@ project_path_from_slug() {
     echo ""
     return
   fi
-  if [ -d "$slug" ]; then
+  if [ "$slug" = "." ] || [ "$slug" = "root" ]; then
+    echo "."
+  elif [ -d "$slug" ]; then
     echo "$slug"
   else
     echo "projects/$slug"
   fi
+}
+
+discover_default_project_path() {
+  if [ -f "00-governance/project-state.yaml" ]; then
+    echo "."
+    return 0
+  fi
+
+  if [ -d "projects" ]; then
+    mapfile -t candidates < <(find projects -mindepth 1 -maxdepth 1 -type d | sort)
+    local valid=()
+    local p
+    for p in "${candidates[@]}"; do
+      if [ "$(basename "$p")" = "_template" ]; then
+        continue
+      fi
+      if [ -f "$p/00-governance/project-state.yaml" ]; then
+        valid+=("$p")
+      fi
+    done
+    if [ "${#valid[@]}" -eq 1 ]; then
+      echo "${valid[0]}"
+      return 0
+    fi
+  fi
+
+  return 1
 }
 
 state_value() {
@@ -165,6 +198,14 @@ has_discovery_approval() {
   local approvals="$project_path/00-governance/approvals.md"
   [ -f "$approvals" ] || return 1
   grep -Eiq '\|[[:space:]]*discovery[[:space:]]*\|.*\|[[:space:]]*approved[[:space:]]*\|' "$approvals"
+}
+
+has_stage_approval() {
+  local project_path="$1"
+  local stage="$2"
+  local approvals="$project_path/00-governance/approvals.md"
+  [ -f "$approvals" ] || return 1
+  grep -Eiq "\|[[:space:]]*${stage}[[:space:]]*\|.*\|[[:space:]]*approved[[:space:]]*\|" "$approvals"
 }
 
 has_brd_approval() {
@@ -499,6 +540,44 @@ enforce_registry_stage() {
   [ "$matched" = true ] || die "command '$command_id' requires stage '$required' (current: $current)"
 }
 
+next_stage_from_workflow() {
+  local current_stage="$1"
+  awk -v current="$current_stage" '
+    /^  allowed_transitions:/ { in_transitions=1; next }
+    in_transitions && $1 == current ":" {
+      line=$0
+      sub(/^[^[]*\[/, "", line)
+      sub(/\].*$/, "", line)
+      gsub(/[[:space:]]/, "", line)
+      n=split(line, stages, ",")
+      for (i=1; i<=n; i++) {
+        if (stages[i] != "blocked" && stages[i] != "cancelled") {
+          print stages[i]
+          exit
+        }
+      }
+    }
+  ' workflow/workflow.yaml
+}
+
+workflow_required_artifacts_for_stage() {
+  local stage="$1"
+  local project_path="$2"
+  awk -v target="$stage" -v workspace="$project_path" '
+    $0 ~ "^    " target ":$" { in_stage=1; next }
+    in_stage && $0 ~ /^      required_artifacts:/ { in_artifacts=1; next }
+    in_stage && in_artifacts && $0 ~ /^        - / {
+      line=$0
+      sub(/^        - /, "", line)
+      gsub("<workspace>", workspace, line)
+      print line
+      next
+    }
+    in_stage && in_artifacts && $0 !~ /^        - / { in_artifacts=0 }
+    in_stage && $0 ~ /^    [a-z]/ { exit }
+  ' workflow/workflow.yaml
+}
+
 handle_intake_start() {
   local cmd="$1"
   local actor="$2"
@@ -520,17 +599,21 @@ handle_intake_start() {
   validate_stack_value db "$db" sqlite postgres mysql
   validate_stack_value cache "$cache" redis none
 
-  if [ -n "$provided_project" ]; then
-    slug="$provided_project"
-  else
-    slug="$(slugify "$product_name")"
-  fi
+  slug="$(slugify "$product_name")"
   [ -n "$slug" ] || die "unable to derive project slug"
 
-  project_path="$(project_path_from_slug "$slug")"
+  if [ -n "$provided_project" ]; then
+    project_path="$(project_path_from_slug "$provided_project")"
+  else
+    project_path="."
+  fi
 
-  if [ ! -d "$project_path" ]; then
-    ./scripts/init-project.sh "$slug" --fe "$fe" --be "$be" --db "$db" --cache "$cache"
+  if [ ! -f "$project_path/00-governance/project-state.yaml" ]; then
+    if [ "$project_path" = "." ]; then
+      ./scripts/init-project.sh --root --project-name "$slug" --fe "$fe" --be "$be" --db "$db" --cache "$cache"
+    else
+      ./scripts/init-project.sh "$(basename "$project_path")" --fe "$fe" --be "$be" --db "$db" --cache "$cache"
+    fi
   fi
 
   require_project_state "$project_path"
@@ -574,7 +657,11 @@ STACK
   set_state_value "$state_file" command_last intake_start
 
   append_command_log "$project_path" "$actor" "$cmd" success "intake initialized and stack locked"
-  log "Project initialized/updated at $project_path"
+  if [ "$project_path" = "." ]; then
+    log "Project initialized/updated at repository root"
+  else
+    log "Project initialized/updated at $project_path"
+  fi
 }
 
 handle_review_scope() {
@@ -640,7 +727,11 @@ handle_generate_epics() {
   [ -f "$project_path/06-planning/Roadmap.md" ] || cp projects/_template/06-planning/Roadmap.md "$project_path/06-planning/Roadmap.md"
   [ -f "$project_path/06-planning/Sprint_Plan.md" ] || cp projects/_template/06-planning/Sprint_Plan.md "$project_path/06-planning/Sprint_Plan.md"
 
-  set_state_value "$state_file" current_stage planning
+  if [ "$(state_value current_stage "$state_file")" = "analysis" ]; then
+    ./scripts/start-stage.sh "$project_path" planning >/dev/null
+  fi
+  require_stage planning "$state_file"
+
   set_state_value "$state_file" current_item epics
   set_state_value "$state_file" next_actor software-developer
   set_state_value "$state_file" last_actor "$actor"
@@ -661,9 +752,14 @@ handle_start_epic() {
 
   local epic_id="${BASH_REMATCH[1]}"
   local state_file="$project_path/00-governance/project-state.yaml"
+  local current_stage
 
   require_project_state "$project_path"
-  set_state_value "$state_file" current_stage delivery
+  current_stage="$(state_value current_stage "$state_file")"
+  if [ "$current_stage" = "planning" ]; then
+    ./scripts/start-stage.sh "$project_path" delivery >/dev/null
+  fi
+  require_stage delivery "$state_file"
   set_state_value "$state_file" active_epic "$epic_id"
   set_state_value "$state_file" current_item "$epic_id"
   set_state_value "$state_file" next_actor software-developer
@@ -693,7 +789,7 @@ handle_start_ticket() {
   local state_file="$project_path/00-governance/project-state.yaml"
 
   require_project_state "$project_path"
-  set_state_value "$state_file" current_stage delivery
+  require_stage delivery "$state_file"
 
   ./scripts/start-ticket.sh "$project_path" "$epic_id" "$ticket_id" >/dev/null
 
@@ -731,6 +827,85 @@ handle_execute_ticket() {
   log "Execution started for $epic/$ticket"
 }
 
+handle_advance_stage() {
+  local project_path="$1"
+  local actor="$2"
+  local cmd="$3"
+  local state_file="$project_path/00-governance/project-state.yaml"
+  local current_stage target_stage
+
+  require_project_state "$project_path"
+  current_stage="$(state_value current_stage "$state_file")"
+  target_stage="$(next_stage_from_workflow "$current_stage")"
+  [ -n "$target_stage" ] || die "unable to determine next stage from workflow for current stage '$current_stage'"
+
+  ./scripts/start-stage.sh "$project_path" "$target_stage" >/dev/null
+  set_state_value "$state_file" last_actor "$actor"
+  set_state_value "$state_file" command_last advance_stage
+
+  append_command_log "$project_path" "$actor" "$cmd" success "stage advanced: $current_stage -> $target_stage"
+  log "Advanced stage: $current_stage -> $target_stage"
+}
+
+handle_preflight() {
+  local project_path="$1"
+  local state_file="$project_path/00-governance/project-state.yaml"
+  local current_stage next_stage
+  local blockers=0
+
+  require_project_state "$project_path"
+
+  current_stage="$(state_value current_stage "$state_file")"
+  [ -n "$current_stage" ] || die "current_stage missing in state file"
+  next_stage="$(next_stage_from_workflow "$current_stage")"
+
+  log "Current stage: $current_stage"
+  log "Next stage candidate: ${next_stage:-none}"
+
+  if has_stage_approval "$project_path" "$current_stage"; then
+    log "Gate approval: present for stage '$current_stage'"
+  else
+    log "BLOCKER: stage approval missing for '$current_stage' (run: approve stage $current_stage)"
+    blockers=$((blockers + 1))
+  fi
+
+  mapfile -t stage_artifacts < <(workflow_required_artifacts_for_stage "$current_stage" "$project_path")
+  if [ "${#stage_artifacts[@]}" -eq 0 ]; then
+    log "BLOCKER: unable to resolve required artifacts for stage '$current_stage' from workflow/workflow.yaml"
+    blockers=$((blockers + 1))
+  else
+    local artifact
+    for artifact in "${stage_artifacts[@]}"; do
+      if [ ! -s "$artifact" ]; then
+        log "BLOCKER: required artifact missing or empty for stage '$current_stage': $artifact"
+        blockers=$((blockers + 1))
+      fi
+    done
+  fi
+
+  if [ "$current_stage" = "quality" ] && [ "$next_stage" = "release" ]; then
+    local gate_status open_issues
+    gate_status="$(state_value manual_test_gate_status "$state_file")"
+    open_issues="$(state_value open_manual_issues "$state_file")"
+    if [ "$gate_status" != "approved" ]; then
+      log "BLOCKER: quality->release requires manual_test_gate_status=approved (current: $gate_status)"
+      blockers=$((blockers + 1))
+    fi
+    if [ "$open_issues" != "0" ]; then
+      log "BLOCKER: quality->release requires open_manual_issues=0 (current: $open_issues)"
+      blockers=$((blockers + 1))
+    fi
+  fi
+
+  if [ "$blockers" -eq 0 ]; then
+    log "Preflight result: ready for stage approval/advance."
+    return 0
+  fi
+
+  log "Preflight result: blocked with $blockers issue(s)."
+  return 2
+}
+
 handle_approve_brd() {
   local project_path="$1"
   local actor="$2"
@@ -751,6 +926,53 @@ handle_approve_brd() {
 
   append_command_log "$project_path" "$actor" "$cmd" success "BRD approved"
   log "BRD approval recorded"
+}
+
+handle_approve_stage() {
+  local project_path="$1"
+  local actor="$2"
+  local cmd="$3"
+  local state_file="$project_path/00-governance/project-state.yaml"
+
+  require_project_state "$project_path"
+
+  if [[ ! "$cmd" =~ ^approve\ stage\ (intake|discovery|analysis|architecture|design|planning|delivery|quality|release)$ ]]; then
+    die "invalid approve stage command format"
+  fi
+
+  local stage current_stage open_issues gate_status
+  stage="${BASH_REMATCH[1]}"
+  current_stage="$(state_value current_stage "$state_file")"
+  [ "$current_stage" = "$stage" ] || die "approve stage target must match current_stage (current: $current_stage, target: $stage)"
+
+  mapfile -t stage_artifacts < <(workflow_required_artifacts_for_stage "$stage" "$project_path")
+  [ "${#stage_artifacts[@]}" -gt 0 ] || die "no required artifacts resolved for stage '$stage' in workflow/workflow.yaml"
+  local artifact
+  for artifact in "${stage_artifacts[@]}"; do
+    [ -s "$artifact" ] || die "stage approval requires artifact present and non-empty: $artifact"
+  done
+
+  if [ "$stage" = "quality" ]; then
+    gate_status="$(state_value manual_test_gate_status "$state_file")"
+    open_issues="$(state_value open_manual_issues "$state_file")"
+    [ "$gate_status" = "approved" ] || die "quality stage requires manual_test_gate_status=approved before stage approval (current: $gate_status)"
+    [ "$open_issues" = "0" ] || die "quality stage approval blocked while open_manual_issues > 0"
+  fi
+
+  if [ "$stage" = "release" ]; then
+    [ -s "$project_path/infra/deploy/docker-compose.yml" ] || die "release stage approval requires infra/deploy/docker-compose.yml"
+    [ -s "$project_path/09-release/Deployment_Readiness_Evidence.md" ] || die "release stage approval requires 09-release/Deployment_Readiness_Evidence.md"
+  fi
+
+  append_approval_entry "$project_path" "$stage" "stage-gate:$stage" approved "$actor" "stage approved via command"
+  add_approved_artifact "$state_file" "stage:$stage"
+
+  set_state_value "$state_file" current_item "$stage-approved"
+  set_state_value "$state_file" last_actor "$actor"
+  set_state_value "$state_file" command_last approve_stage
+
+  append_command_log "$project_path" "$actor" "$cmd" success "stage approved: $stage"
+  log "Stage approved: $stage"
 }
 
 handle_reject_architecture() {
@@ -1112,13 +1334,41 @@ handle_resume_stage() {
   local state_file="$project_path/00-governance/project-state.yaml"
 
   require_project_state "$project_path"
-  local stage item next_actor status manual_gate open_issues
+  local stage item next_actor status manual_gate open_issues gate_approved next_required
   stage="$(state_value current_stage "$state_file")"
   item="$(state_value current_item "$state_file")"
   next_actor="$(state_value next_actor "$state_file")"
   status="$(state_value status "$state_file")"
   manual_gate="$(state_value manual_test_gate_status "$state_file")"
   open_issues="$(state_value open_manual_issues "$state_file")"
+  gate_approved=false
+  if has_stage_approval "$project_path" "$stage"; then
+    gate_approved=true
+  fi
+
+  if [ "$gate_approved" = false ]; then
+    next_required="approve stage $stage"
+  else
+    case "$stage" in
+      delivery)
+        if [ "$(state_value active_ticket "$state_file")" = "none" ]; then
+          next_required="start epic-<n>-ticket-<n>"
+        else
+          next_required="execute current ticket"
+        fi
+        ;;
+      quality)
+        if [ "$manual_gate" != "approved" ]; then
+          next_required="approve manual test gate"
+        else
+          next_required="approve stage quality"
+        fi
+        ;;
+      *)
+        next_required="continue current stage work and approval flow"
+        ;;
+    esac
+  fi
 
   set_state_value "$state_file" last_actor "$actor"
   set_state_value "$state_file" command_last resume_stage
@@ -1128,8 +1378,10 @@ handle_resume_stage() {
   log "Current item: $item"
   log "Status: $status"
   log "Next actor: $next_actor"
+  log "Stage gate approved: $gate_approved"
   log "Manual gate: $manual_gate"
   log "Open manual issues: $open_issues"
+  log "Next required command: $next_required"
 }
 
 handle_close_ticket() {
@@ -1204,13 +1456,15 @@ done
 project_path=""
 if [ -n "$project_slug" ]; then
   project_path="$(project_path_from_slug "$project_slug")"
+else
+  project_path="$(discover_default_project_path || true)"
 fi
 
 command_id="$(resolve_command_id "$command_phrase" || true)"
 [ -n "$command_id" ] || die "unsupported command phrase. refer to workflow/commands.md"
 
 if [ "$command_id" != "intake_start" ]; then
-  [ -n "$project_path" ] || die "--project is required for '$command_id'"
+  [ -n "$project_path" ] || die "no active project state found. run intake command first or pass --project."
   require_project_state "$project_path"
   enforce_registry_stage "$command_id" "$project_path/00-governance/project-state.yaml"
 fi
@@ -1237,8 +1491,17 @@ case "$command_id" in
   execute_ticket)
     handle_execute_ticket "$project_path" "$actor" "$command_phrase"
     ;;
+  preflight)
+    handle_preflight "$project_path"
+    ;;
+  advance_stage)
+    handle_advance_stage "$project_path" "$actor" "$command_phrase"
+    ;;
   approve_brd)
     handle_approve_brd "$project_path" "$actor" "$command_phrase"
+    ;;
+  approve_stage)
+    handle_approve_stage "$project_path" "$actor" "$command_phrase"
     ;;
   reject_architecture)
     handle_reject_architecture "$project_path" "$actor" "$command_phrase"

@@ -1,21 +1,25 @@
 # Command Contract
 
-All workflow commands are executed through:
+All workflow commands are executed through a single entry point:
 
-- `./scripts/command-dispatch.sh --command "<phrase>" [--project <slug>] --actor <actor-id>`
+- `./scripts/command-dispatch.sh --command "<phrase>" [--project <slug-or-path>] --actor <actor-id>`
+- If `--project` is omitted, dispatcher targets root workspace (`./00-governance/project-state.yaml`) when present.
 
 ## Command Specification
 
 | Command ID | Exact Syntax | Required Stage | Preconditions | Side Effects | Failure Conditions |
 | --- | --- | --- | --- | --- | --- |
-| intake_start | `to project manager: I want to build <product-name> | fe=<fe> | be=<be> | db=<db> | cache=<cache>` | none | Stack values in allowlist | Initialize project workspace in current repository if missing, write stack lock, set `stack_locked=true`, log command | Invalid format, invalid stack values, stack override attempt without approved decision |
+| intake_start | `to project manager: I want to build <product-name> | fe=<fe> | be=<be> | db=<db> | cache=<cache>` | none | Stack values in allowlist | Initialize root workspace in current repository if missing, write stack lock, set `stack_locked=true`, log command | Invalid format, invalid stack values, stack override attempt without approved decision |
 | review_scope | `review scope` | intake,discovery | Project exists | Ensure discovery context, set `current_item=scope-review`, log command | Missing project state |
 | lock_scope | `lock scope` | discovery | Discovery artifacts exist; discovery approval logged | Set `scope_locked=true`, set `current_item=scope-locked`, log command | Missing artifacts, missing approval, wrong stage |
 | generate_epics | `generate epics` | analysis,planning | `scope_locked=true`; BRD approval exists | Ensure planning artifacts exist, set planning context and `current_item=epics`, log command | Scope unlocked, missing approval, missing project |
 | start_epic | `start epic-<n>` | planning,delivery | Epic id format valid | Set `active_epic`, ensure epic folder/file, set delivery context, log command | Invalid epic format, project missing |
 | start_ticket | `start epic-<n>-ticket-<n>` | delivery | Epic and ticket format valid | Set `active_epic`, `active_ticket`, scaffold ticket packet if needed, log command | Invalid format, wrong stage, ticket scaffold failure |
 | execute_ticket | `execute current ticket` | delivery | Active epic/ticket exists | Set execution context for active ticket, set next actor `software-developer`, log command | Missing active ticket, missing ticket directory, wrong stage |
+| preflight | `preflight` | any | Project exists | Print exact gate/artifact blockers for current stage progression | Missing project state |
+| advance_stage | `advance stage` | any | Current stage has explicit approval record | Transition to next stage from state machine, update stage context, log command | Current stage not approved, transition blocked by gate checks |
 | approve_brd | `approve BRD` | analysis | BRD exists | Append approval log entry, add BRD to approved artifacts, log command | BRD missing |
+| approve_stage | `approve stage <intake|discovery|analysis|architecture|design|planning|delivery|quality|release>` | any | Target stage matches `current_stage`; quality/release extra guards pass | Append stage approval to approvals log, mark stage approved in state, log command | Stage mismatch, missing quality/release prerequisites |
 | reject_architecture | `reject Architecture with notes: <text>` | architecture | Architecture doc exists; notes non-empty | Append rejection entry to approvals, set status context, log command | Missing notes, architecture doc missing |
 | prepare_manual_test | `prepare manual test` | quality | Acceptance test cases exist | Generate `08-quality/Manual_Test_Script.md`, set `manual_test_gate_status=prepared`, log command | Missing acceptance test cases, wrong stage |
 | start_manual_test | `start manual test` | quality | `manual_test_gate_status=prepared` | Set `manual_test_gate_status=in_progress`, log command | Manual test not prepared, wrong stage |
@@ -43,5 +47,17 @@ All workflow commands are executed through:
 3. Stack changes after lock require explicit human override in `decisions.md`.
 4. `close ticket` requires complete delivery evidence before handoff.
 5. Manual-test gate cannot be approved while `open_manual_issues > 0`.
-6. Scaffolding commands operate only inside the current repository and never create a new repository.
-7. Command phrase matching and required-stage enforcement are sourced from `workflow/command-registry.yaml`.
+6. Stage transitions are blocked until current stage has an explicit approval record.
+7. Scaffolding commands operate only inside the current repository and never create a new repository.
+8. Command phrase matching and required-stage enforcement are sourced from `workflow/command-registry.yaml`.
+
+## Minimal Gate Flow
+
+1. `to project manager: I want to build <product-name> | fe=<fe> | be=<be> | db=<db> | cache=<cache>`
+2. `preflight`
+3. `approve stage intake`
+4. `advance stage`
+5. Stage-specific work commands (for example `review scope`, `lock scope`, `generate epics`, `start epic-1`, `execute current ticket`)
+6. `preflight`
+7. `approve stage <current_stage>`
+8. `advance stage`

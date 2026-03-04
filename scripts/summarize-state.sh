@@ -3,12 +3,13 @@ set -euo pipefail
 
 usage() {
   cat <<USAGE
-Usage: $(basename "$0") <project-path> [--json]
+Usage: $(basename "$0") [project-path] [--json]
 
 Print key fields from project-state.yaml.
 Examples:
-  $(basename "$0") projects/gym-erp
-  $(basename "$0") projects/gym-erp --json
+  $(basename "$0")
+  $(basename "$0") .
+  $(basename "$0") . --json
 USAGE
 }
 
@@ -32,12 +33,24 @@ if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
   exit 0
 fi
 
-[ "$#" -ge 1 ] || { usage; exit 1; }
-
-project_path="$1"
 format="text"
-if [ "${2:-}" = "--json" ]; then
+project_path="."
+
+if [ "$#" -eq 0 ]; then
+  :
+elif [ "$#" -eq 1 ]; then
+  if [ "$1" = "--json" ]; then
+    format="json"
+  else
+    project_path="$1"
+  fi
+elif [ "$#" -eq 2 ]; then
+  project_path="$1"
+  [ "$2" = "--json" ] || { usage; exit 1; }
   format="json"
+else
+  usage
+  exit 1
 fi
 
 state_file="$project_path/00-governance/project-state.yaml"

@@ -19,7 +19,7 @@ BRD, user stories, business rules, acceptance criteria, analysis handoff packet.
 Additional hardening responsibilities:
 
 - Command-driven execution role: Executes analysis-related commands with clear artifact references.
-- Monorepo path mapping responsibility: projects/<project>/02-discovery and 03-analysis.
+- Monorepo path mapping responsibility: <workspace>/02-discovery and 03-analysis.
 - Deployment contract responsibility: Ensures requirement wording supports deployment constraints and operational acceptance criteria.
 
 ## 5. Must Not Do
