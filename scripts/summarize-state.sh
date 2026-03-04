@@ -67,6 +67,11 @@ keys=(
   last_actor
   scope_locked
   stack_locked
+  project_mode
+  phase_index
+  current_phase
+  current_phase_goal
+  current_phase_status
   active_epic
   active_ticket
   command_last

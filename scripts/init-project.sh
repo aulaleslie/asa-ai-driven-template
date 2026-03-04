@@ -5,13 +5,11 @@ usage() {
   cat <<USAGE
 Usage:
   $(basename "$0") --root [--project-name <name>] [--fe <value> --be <value> --db <value> --cache <value>]
-  $(basename "$0") <project-slug> [--fe <value> --be <value> --db <value> --cache <value>]
 
 Initialize project workspace artifacts from projects/_template.
 Default target is repository root when --root is used.
 Examples:
   $(basename "$0") --root --project-name gym-erp --fe next --be nest --db sqlite --cache redis
-  $(basename "$0") gym-erp --fe next --be nest --db sqlite --cache redis
 USAGE
 }
 
@@ -42,7 +40,6 @@ slugify() {
 }
 
 root_mode=false
-slug=""
 project_name=""
 fe=""
 be=""
@@ -93,11 +90,7 @@ while [ "$#" -gt 0 ]; do
       die "unknown option: $1"
       ;;
     *)
-      if [ -n "$slug" ]; then
-        die "only one project slug is allowed"
-      fi
-      slug="$1"
-      shift
+      die "unsupported argument: $1. this script runs in single-project root mode only."
       ;;
   esac
 done
@@ -105,66 +98,46 @@ done
 src="projects/_template"
 [ -d "$src" ] || die "source template not found at $src"
 
-if [ "$root_mode" = true ]; then
-  [ -z "$slug" ] || die "do not pass <project-slug> when using --root"
-  if [ -z "$project_name" ]; then
-    project_name="$(slugify "$(basename "$PWD")")"
-  fi
-  [ -n "$project_name" ] || die "--project-name is required when root name cannot be derived"
-
-  if [ -f "00-governance/project-state.yaml" ]; then
-    die "root workspace is already initialized (00-governance/project-state.yaml exists)"
-  fi
-
-  required_dirs=(
-    00-governance
-    01-intake
-    02-discovery
-    03-analysis
-    04-architecture
-    05-design
-    06-planning
-    07-delivery
-    08-quality
-    09-release
-    apps
-    services
-    infra
-    packages
-  )
-
-  for d in "${required_dirs[@]}"; do
-    [ -e "$d" ] && die "destination path already exists at ./$d"
-  done
-
-  log "Scaffolding project workspace in repository root"
-  for d in "${required_dirs[@]}"; do
-    cp -R "$src/$d" "./$d"
-  done
-  if [ ! -f "PROJECT_WORKSPACE.md" ]; then
-    cp "$src/README.md" "PROJECT_WORKSPACE.md"
-  fi
-
-  dst="."
-else
-  if [ -z "$slug" ]; then
-    usage
-    exit 1
-  fi
-
-  case "$slug" in
-    ''|*/*|.*|*_template)
-      die "invalid project slug: $slug"
-      ;;
-  esac
-
-  dst="projects/$slug"
-  [ ! -e "$dst" ] || die "destination already exists at $dst"
-
-  log "Creating project workspace at $dst"
-  cp -R "$src" "$dst"
-  project_name="$slug"
+[ "$root_mode" = true ] || die "--root is required. this framework initializes only the current repository."
+if [ -z "$project_name" ]; then
+  project_name="$(slugify "$(basename "$PWD")")"
 fi
+[ -n "$project_name" ] || die "--project-name is required when root name cannot be derived"
+
+if [ -f "00-governance/project-state.yaml" ]; then
+  die "root workspace is already initialized (00-governance/project-state.yaml exists)"
+fi
+
+required_dirs=(
+  00-governance
+  01-intake
+  02-discovery
+  03-analysis
+  04-architecture
+  05-design
+  06-planning
+  07-delivery
+  08-quality
+  09-release
+  apps
+  services
+  infra
+  packages
+)
+
+for d in "${required_dirs[@]}"; do
+  [ -e "$d" ] && die "destination path already exists at ./$d"
+done
+
+log "Scaffolding project workspace in repository root"
+for d in "${required_dirs[@]}"; do
+  cp -R "$src/$d" "./$d"
+done
+if [ ! -f "PROJECT_WORKSPACE.md" ]; then
+  cp "$src/README.md" "PROJECT_WORKSPACE.md"
+fi
+
+dst="."
 
 lock_status="unlocked"
 stack_locked="false"
@@ -188,6 +161,11 @@ next_actor: project-manager
 last_actor: none
 scope_locked: false
 stack_locked: $stack_locked
+project_mode: single_project
+phase_index: 1
+current_phase: phase-1
+current_phase_goal: mvp
+current_phase_status: active
 active_epic: none
 active_ticket: none
 command_last: init-project
@@ -209,6 +187,14 @@ locked_by: $locked_by
 locked_at: $locked_at
 override_required: false
 STACK
+
+cat > "$dst/00-governance/phases.md" <<PHASES
+# Phase Register
+
+| Phase | Goal | Status | Requested By | Started At (UTC) | Closed At (UTC) | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| phase-1 | mvp | active | init-project | $(date -u +%Y-%m-%dT%H:%M:%SZ) | | initial phase scaffold |
+PHASES
 
 if [ ! -f "$dst/00-governance/command-log.md" ]; then
   cat > "$dst/00-governance/command-log.md" <<LOG

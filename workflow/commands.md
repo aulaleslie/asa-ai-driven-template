@@ -2,15 +2,17 @@
 
 All workflow commands are executed through a single entry point:
 
-- `./scripts/command-dispatch.sh --command "<phrase>" [--project <slug-or-path>] --actor <actor-id>`
+- `./scripts/command-dispatch.sh --command "<phrase>" [--project <root>] --actor <actor-id>`
+- Single-project mode: `--project` is optional and may only be `.` or `root`.
 - If `--project` is omitted, dispatcher targets root workspace (`./00-governance/project-state.yaml`) when present.
 
 ## Command Specification
 
 | Command ID | Exact Syntax | Required Stage | Preconditions | Side Effects | Failure Conditions |
 | --- | --- | --- | --- | --- | --- |
-| intake_start | `to project manager: I want to build <product-name> | fe=<fe> | be=<be> | db=<db> | cache=<cache>` | none | Stack values in allowlist | Initialize root workspace in current repository if missing, write stack lock, set `stack_locked=true`, log command | Invalid format, invalid stack values, stack override attempt without approved decision |
+| intake_start | `to project manager: I want to build <product-name> | fe=<fe> | be=<be> | db=<db> | cache=<cache>` | none | Stack values in allowlist; no existing root workspace | Initialize root workspace in current repository if missing, write stack lock, set `stack_locked=true`, initialize `phase-1` as MVP big-picture request, log command | Invalid format, invalid stack values, or project already initialized (single-project policy) |
 | review_scope | `review scope` | intake,discovery | Project exists | Ensure discovery context, set `current_item=scope-review`, log command | Missing project state |
+| start_next_phase | `start next phase: <goal>` | release | Release stage approved in current phase | Close previous phase record, archive/reset approvals, initialize next phase context at discovery, reset scope lock, log command | Missing release approval, invalid format, wrong stage |
 | lock_scope | `lock scope` | discovery | Discovery artifacts exist; discovery approval logged | Set `scope_locked=true`, set `current_item=scope-locked`, log command | Missing artifacts, missing approval, wrong stage |
 | generate_epics | `generate epics` | analysis,planning | `scope_locked=true`; BRD approval exists | Ensure planning artifacts exist, set planning context and `current_item=epics`, log command | Scope unlocked, missing approval, missing project |
 | start_epic | `start epic-<n>` | planning,delivery | Epic id format valid | Set `active_epic`, ensure epic folder/file, set delivery context, log command | Invalid epic format, project missing |
@@ -50,6 +52,7 @@ All workflow commands are executed through a single entry point:
 6. Stage transitions are blocked until current stage has an explicit approval record.
 7. Scaffolding commands operate only inside the current repository and never create a new repository.
 8. Command phrase matching and required-stage enforcement are sourced from `workflow/command-registry.yaml`.
+9. `intake_start` is one-time project creation. Additional human requests must use `start next phase: <goal>` instead of creating a second project.
 
 ## Minimal Gate Flow
 
@@ -61,3 +64,4 @@ All workflow commands are executed through a single entry point:
 6. `preflight`
 7. `approve stage <current_stage>`
 8. `advance stage`
+9. After release approval: `start next phase: <goal>`

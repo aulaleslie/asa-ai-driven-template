@@ -17,7 +17,7 @@ This constitution defines non-negotiable operating rules for all agents and huma
 6. Artifact-required work.
    - Decisions and actions must be reflected in versioned artifacts.
 7. Project state tracking is mandatory.
-   - Canonical state is `00-governance/project-state.yaml` in repository root (or explicitly selected workspace path when `--project` is used).
+   - Canonical state is `00-governance/project-state.yaml` in repository root.
 8. Command execution must use dispatcher.
    - Workflow commands must run via `scripts/command-dispatch.sh`.
    - No alternate gate entry points are allowed for stage progression.
@@ -30,12 +30,18 @@ This constitution defines non-negotiable operating rules for all agents and huma
 12. Release deployability evidence is mandatory.
     - Release approval requires evidence for deployment using `docker compose up --build -d`.
 13. In-repo scaffolding only.
-    - Agents must scaffold within the current repository and must not create a new repository.
-14. Delivery is execution-first.
-    - During delivery, active tickets must drive implementation work before producing additional planning artifacts.
-15. No timeline estimation by default.
+   - Agents must scaffold within the current repository and must not create a new repository.
+14. Single-project policy is mandatory.
+   - One template clone supports one project workspace only.
+   - Repeated create-project intake commands must be rejected with guidance to extend current scope or start a next phase.
+15. Phase-cycle governance is mandatory.
+   - Initial create-project command only captures big-picture expectation and phase-1 MVP objective.
+   - Additional human requirements must use `start next phase: <goal>` after release approval.
+16. Delivery is execution-first.
+   - During delivery, active tickets must drive implementation work before producing additional planning artifacts.
+17. No timeline estimation by default.
     - Date/time estimates are optional and only provided when explicitly requested by a human.
-16. Stage progression is approval-locked.
+18. Stage progression is approval-locked.
     - No stage transition may occur until the current stage is explicitly approved via gate command.
 
 ## Required Operating Behavior

@@ -2,6 +2,8 @@ version: 2
 state_machine:
   command_entrypoint: ./scripts/command-dispatch.sh
   stage_gate_command: approve stage <stage>
+  workspace_policy: single_project_root_workspace
+  phase_cycle_command: start next phase: <goal>
   stages:
     intake:
       required_artifacts:
@@ -10,6 +12,7 @@ state_machine:
       approval_gate: human_intake_approval
       next_responsible_role: project-manager
       invariants:
+        project_mode: single_project
         stack_locked: false_or_true
         scope_locked: false
     discovery:

@@ -4,9 +4,12 @@ set -euo pipefail
 usage() {
   cat <<USAGE
 Usage:
-  $(basename "$0") --command "<phrase>" [--project <slug-or-path>] --actor <actor-id>
+  $(basename "$0") --command "<phrase>" [--project <root>] --actor <actor-id>
 
-If --project is omitted, dispatcher uses root workspace when ./00-governance/project-state.yaml exists.
+Single-project mode:
+  - --project is optional.
+  - When provided, allowed values are only "." or "root".
+  - If omitted, dispatcher uses root workspace when ./00-governance/project-state.yaml exists.
 
 Examples:
   $(basename "$0") --command "to project manager: I want to build gym erp | fe=next | be=nest | db=sqlite | cache=redis" --actor human-owner
@@ -15,6 +18,7 @@ Examples:
   $(basename "$0") --command "lock scope" --actor project-manager
   $(basename "$0") --command "execute current ticket" --actor software-developer
   $(basename "$0") --command "prepare manual test" --actor sdet
+  $(basename "$0") --command "start next phase: advanced analytics" --actor human-owner
 USAGE
 }
 
@@ -44,35 +48,15 @@ project_path_from_slug() {
   fi
   if [ "$slug" = "." ] || [ "$slug" = "root" ]; then
     echo "."
-  elif [ -d "$slug" ]; then
-    echo "$slug"
-  else
-    echo "projects/$slug"
+    return
   fi
+  echo ""
 }
 
 discover_default_project_path() {
   if [ -f "00-governance/project-state.yaml" ]; then
     echo "."
     return 0
-  fi
-
-  if [ -d "projects" ]; then
-    mapfile -t candidates < <(find projects -mindepth 1 -maxdepth 1 -type d | sort)
-    local valid=()
-    local p
-    for p in "${candidates[@]}"; do
-      if [ "$(basename "$p")" = "_template" ]; then
-        continue
-      fi
-      if [ -f "$p/00-governance/project-state.yaml" ]; then
-        valid+=("$p")
-      fi
-    done
-    if [ "${#valid[@]}" -eq 1 ]; then
-      echo "${valid[0]}"
-      return 0
-    fi
   fi
 
   return 1
@@ -155,6 +139,8 @@ append_approval_entry() {
   local decision_maker="$5"
   local notes="$6"
   local approvals="$project_path/00-governance/approvals.md"
+  local state_file="$project_path/00-governance/project-state.yaml"
+  local phase_label notes_with_phase
   [ -f "$approvals" ] || {
     cat > "$approvals" <<APP
 # Approvals Log
@@ -163,7 +149,57 @@ append_approval_entry() {
 | --- | --- | --- | --- | --- | --- |
 APP
   }
-  echo "| $(date -u +%Y-%m-%d) | $stage | $artifacts | $decision | $decision_maker | $notes |" >> "$approvals"
+
+  phase_label="none"
+  if [ -f "$state_file" ]; then
+    phase_label="$(state_value current_phase "$state_file")"
+    [ -n "$phase_label" ] || phase_label="none"
+  fi
+  if [ -n "$notes" ]; then
+    notes_with_phase="phase:$phase_label; $notes"
+  else
+    notes_with_phase="phase:$phase_label"
+  fi
+
+  echo "| $(date -u +%Y-%m-%d) | $stage | $artifacts | $decision | $decision_maker | $notes_with_phase |" >> "$approvals"
+}
+
+reset_approvals_log() {
+  local project_path="$1"
+  local approvals="$project_path/00-governance/approvals.md"
+  cat > "$approvals" <<APP
+# Approvals Log
+
+| Record Ref | Stage | Artifact(s) | Decision | Decision Maker | Notes |
+| --- | --- | --- | --- | --- | --- |
+APP
+}
+
+archive_and_reset_approvals() {
+  local project_path="$1"
+  local completed_phase="$2"
+  local approvals="$project_path/00-governance/approvals.md"
+  local archive_file
+
+  if [ -f "$approvals" ] && awk '
+    {
+      line=$0
+      gsub(/^[[:space:]]+|[[:space:]]+$/, "", line)
+      if (line ~ /^\|/ && line !~ /Record Ref/ && line !~ /^\|[[:space:]]*---/) {
+        found=1
+        exit
+      }
+    }
+    END { exit found ? 0 : 1 }
+  ' "$approvals"; then
+    archive_file="$project_path/00-governance/approvals.${completed_phase}.md"
+    if [ -f "$archive_file" ]; then
+      archive_file="$project_path/00-governance/approvals.${completed_phase}.$(date -u +%Y%m%dT%H%M%SZ).md"
+    fi
+    cp "$approvals" "$archive_file"
+  fi
+
+  reset_approvals_log "$project_path"
 }
 
 validate_stack_value() {
@@ -213,6 +249,168 @@ has_brd_approval() {
   local approvals="$project_path/00-governance/approvals.md"
   [ -f "$approvals" ] || return 1
   grep -Eiq '\|[[:space:]]*analysis[[:space:]]*\|.*BRD.*\|[[:space:]]*approved[[:space:]]*\|' "$approvals"
+}
+
+phase_register_file() {
+  local project_path="$1"
+  echo "$project_path/00-governance/phases.md"
+}
+
+ensure_phase_register() {
+  local project_path="$1"
+  local phase_file
+  phase_file="$(phase_register_file "$project_path")"
+  [ -f "$phase_file" ] || cat > "$phase_file" <<PHASES
+# Phase Register
+
+| Phase | Goal | Status | Requested By | Started At (UTC) | Closed At (UTC) | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+PHASES
+}
+
+append_phase_row() {
+  local project_path="$1"
+  local phase="$2"
+  local goal="$3"
+  local status="$4"
+  local requested_by="$5"
+  local started_at="$6"
+  local closed_at="$7"
+  local notes="$8"
+  local phase_file
+  phase_file="$(phase_register_file "$project_path")"
+  ensure_phase_register "$project_path"
+  echo "| $phase | $goal | $status | $requested_by | $started_at | $closed_at | $notes |" >> "$phase_file"
+}
+
+close_active_phase_row() {
+  local project_path="$1"
+  local phase="$2"
+  local goal="$3"
+  local notes="$4"
+  local closed_at="$5"
+  local phase_file tmp_file
+  phase_file="$(phase_register_file "$project_path")"
+  ensure_phase_register "$project_path"
+  tmp_file="${phase_file}.tmp"
+
+  if awk -F'|' -v phase="$phase" -v notes="$notes" -v closed_at="$closed_at" '
+    function trim(s){ gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+    {
+      if ($0 !~ /^\|/) {
+        print $0
+        next
+      }
+
+      p=trim($2)
+      if (p=="Phase" || p=="---" || p=="") {
+        print $0
+        next
+      }
+
+      if (p==phase && trim($4)=="active") {
+        goal=trim($3)
+        requested_by=trim($5)
+        started_at=trim($6)
+        existing_notes=trim($8)
+        merged_notes=notes
+        if (existing_notes != "" && existing_notes != "-") {
+          merged_notes=existing_notes "; " notes
+        }
+        printf "| %s | %s | completed | %s | %s | %s | %s |\n", p, goal, requested_by, started_at, closed_at, merged_notes
+        updated=1
+        next
+      }
+
+      print $0
+    }
+    END { if (!updated) exit 3 }
+  ' "$phase_file" > "$tmp_file"; then
+    mv "$tmp_file" "$phase_file"
+    return
+  fi
+
+  rm -f "$tmp_file"
+  append_phase_row "$project_path" "$phase" "$goal" "completed" "system" "unknown" "$closed_at" "$notes"
+  log "Phase row for $phase was missing; appended completed fallback row."
+}
+
+append_phase_request_note() {
+  local project_path="$1"
+  local actor="$2"
+  local cmd="$3"
+  local next_phase="$4"
+  local phase_goal="$5"
+  local request_file="$project_path/01-intake/request.md"
+
+  [ -f "$request_file" ] || {
+    cat > "$request_file" <<REQUEST
+# Intake Request
+
+## Command Context
+
+- Initiating command:
+- Actor:
+
+## Big-Picture Expectation
+
+- Product name:
+- Delivery model: phase-driven delivery in a single project workspace.
+REQUEST
+  }
+
+  cat >> "$request_file" <<REQUEST
+
+## Phase Request Update
+
+- Command: $cmd
+- Actor: $actor
+- Requested phase: $next_phase
+- Goal: $phase_goal
+- Expected flow: requirements refinement -> ticketed delivery -> quality/release gates -> return to PM for next phase request.
+REQUEST
+}
+
+write_intake_big_picture() {
+  local project_path="$1"
+  local actor="$2"
+  local command="$3"
+  local project_name="$4"
+  local fe="$5"
+  local be="$6"
+  local db="$7"
+  local cache="$8"
+  local request_file="$project_path/01-intake/request.md"
+
+  cat > "$request_file" <<REQUEST
+# Intake Request
+
+## Command Context
+
+- Initiating command: $command
+- Actor: $actor
+
+## Big-Picture Expectation
+
+- Product name: $project_name
+- Delivery model: phase-driven delivery in a single project workspace.
+- Phase 1 objective: MVP scope validated through full workflow gates.
+- Subsequent phases: additional requirements are added by human request and routed through new phase cycle commands.
+
+## Initial Stack Selection
+
+- fe: $fe
+- be: $be
+- db: $db
+- cache: $cache
+
+## Delivery Lifecycle Expectation
+
+1. Complete requirement and architecture workflow for current phase.
+2. Execute development through approved tickets.
+3. Complete quality and release gates.
+4. Return to Project Manager for next-phase request from human.
+REQUEST
 }
 
 manual_issues_file() {
@@ -602,19 +800,21 @@ handle_intake_start() {
   slug="$(slugify "$product_name")"
   [ -n "$slug" ] || die "unable to derive project slug"
 
-  if [ -n "$provided_project" ]; then
-    project_path="$(project_path_from_slug "$provided_project")"
-  else
-    project_path="."
+  if [ -n "$provided_project" ] && [ "$provided_project" != "." ] && [ "$provided_project" != "root" ]; then
+    die "single-project mode is enabled. use repository root only (omit --project or pass --project .)."
+  fi
+  project_path="."
+
+  if [ -f "$project_path/00-governance/project-state.yaml" ]; then
+    local existing_name
+    existing_name="$(state_value project_name "$project_path/00-governance/project-state.yaml")"
+    if [ -n "$existing_name" ] && [ "$existing_name" != "TBD" ]; then
+      die "project already initialized as '$existing_name'. this template supports one project only. continue by extending current scope/features, or run 'start next phase: <goal>' after release."
+    fi
+    die "project state already exists in repository root. this template supports one project only."
   fi
 
-  if [ ! -f "$project_path/00-governance/project-state.yaml" ]; then
-    if [ "$project_path" = "." ]; then
-      ./scripts/init-project.sh --root --project-name "$slug" --fe "$fe" --be "$be" --db "$db" --cache "$cache"
-    else
-      ./scripts/init-project.sh "$(basename "$project_path")" --fe "$fe" --be "$be" --db "$db" --cache "$cache"
-    fi
-  fi
+  ./scripts/init-project.sh --root --project-name "$slug" --fe "$fe" --be "$be" --db "$db" --cache "$cache"
 
   require_project_state "$project_path"
 
@@ -655,13 +855,95 @@ STACK
   set_state_value "$state_file" next_actor project-manager
   set_state_value "$state_file" last_actor "$actor"
   set_state_value "$state_file" command_last intake_start
+  set_state_value "$state_file" project_mode single_project
+  set_state_value "$state_file" phase_index 1
+  set_state_value "$state_file" current_phase phase-1
+  set_state_value "$state_file" current_phase_goal mvp
+  set_state_value "$state_file" current_phase_status active
+
+  write_intake_big_picture "$project_path" "$actor" "$cmd" "$product_name" "$fe" "$be" "$db" "$cache"
+  ensure_phase_register "$project_path"
+  if ! grep -Eq '^\|[[:space:]]*phase-1[[:space:]]*\|' "$project_path/00-governance/phases.md"; then
+    append_phase_row "$project_path" phase-1 mvp active "$actor" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "" "initial project creation"
+  fi
 
   append_command_log "$project_path" "$actor" "$cmd" success "intake initialized and stack locked"
-  if [ "$project_path" = "." ]; then
-    log "Project initialized/updated at repository root"
-  else
-    log "Project initialized/updated at $project_path"
+  log "Project initialized at repository root with phase-1 (mvp) big picture."
+}
+
+handle_start_next_phase() {
+  local project_path="$1"
+  local actor="$2"
+  local cmd="$3"
+  local state_file="$project_path/00-governance/project-state.yaml"
+  local previous_phase previous_goal previous_index next_index next_phase phase_goal
+
+  require_project_state "$project_path"
+  require_stage release "$state_file"
+  has_stage_approval "$project_path" release || die "release stage must be approved before starting next phase"
+
+  if [[ ! "$cmd" =~ ^start\ next\ phase:\ (.+)$ ]]; then
+    die "invalid next phase command format"
   fi
+  phase_goal="${BASH_REMATCH[1]}"
+  phase_goal="$(echo "$phase_goal" | tr '\n' ' ' | sed -E 's/[[:space:]]+/ /g; s/^[[:space:]]+|[[:space:]]+$//g')"
+  phase_goal="${phase_goal//|/-}"
+  [ -n "$phase_goal" ] || die "next phase goal is required"
+
+  previous_phase="$(state_value current_phase "$state_file")"
+  [ -n "$previous_phase" ] || previous_phase="phase-1"
+  previous_goal="$(state_value current_phase_goal "$state_file")"
+  [ -n "$previous_goal" ] || previous_goal="completed phase"
+
+  previous_index="$(state_value phase_index "$state_file")"
+  if [[ ! "$previous_index" =~ ^[0-9]+$ ]]; then
+    previous_index=1
+  fi
+
+  next_index=$((previous_index + 1))
+  next_phase="phase-$next_index"
+
+  close_active_phase_row \
+    "$project_path" \
+    "$previous_phase" \
+    "$previous_goal" \
+    "completed through release approval" \
+    "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+  archive_and_reset_approvals "$project_path" "$previous_phase"
+  append_phase_row \
+    "$project_path" \
+    "$next_phase" \
+    "$phase_goal" \
+    "active" \
+    "$actor" \
+    "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+    "" \
+    "started from project manager next-phase command"
+  append_phase_request_note "$project_path" "$actor" "$cmd" "$next_phase" "$phase_goal"
+
+  set_state_value "$state_file" current_stage discovery
+  set_state_value "$state_file" current_item "$next_phase-scope-review"
+  set_state_value "$state_file" status in_progress
+  set_state_value "$state_file" scope_locked false
+  set_state_value "$state_file" approved_artifacts "[]"
+  set_state_value "$state_file" blocked_by "[]"
+  set_state_value "$state_file" active_epic none
+  set_state_value "$state_file" active_ticket none
+  set_state_value "$state_file" deployment_contract pending
+  set_state_value "$state_file" manual_test_gate_status not_started
+  set_state_value "$state_file" manual_test_last_result none
+  set_state_value "$state_file" open_manual_issues 0
+  set_state_value "$state_file" phase_index "$next_index"
+  set_state_value "$state_file" current_phase "$next_phase"
+  set_state_value "$state_file" current_phase_goal "$phase_goal"
+  set_state_value "$state_file" current_phase_status active
+  set_state_value "$state_file" next_actor project-manager
+  set_state_value "$state_file" last_actor "$actor"
+  set_state_value "$state_file" command_last start_next_phase
+
+  append_command_log "$project_path" "$actor" "$cmd" success "next phase started: $next_phase"
+  log "Started $next_phase with goal: $phase_goal"
 }
 
 handle_review_scope() {
@@ -1334,11 +1616,13 @@ handle_resume_stage() {
   local state_file="$project_path/00-governance/project-state.yaml"
 
   require_project_state "$project_path"
-  local stage item next_actor status manual_gate open_issues gate_approved next_required
+  local stage item next_actor status manual_gate open_issues gate_approved next_required current_phase phase_goal
   stage="$(state_value current_stage "$state_file")"
   item="$(state_value current_item "$state_file")"
   next_actor="$(state_value next_actor "$state_file")"
   status="$(state_value status "$state_file")"
+  current_phase="$(state_value current_phase "$state_file")"
+  phase_goal="$(state_value current_phase_goal "$state_file")"
   manual_gate="$(state_value manual_test_gate_status "$state_file")"
   open_issues="$(state_value open_manual_issues "$state_file")"
   gate_approved=false
@@ -1364,6 +1648,9 @@ handle_resume_stage() {
           next_required="approve stage quality"
         fi
         ;;
+      release)
+        next_required="start next phase: <goal> (or keep release as final phase)"
+        ;;
       *)
         next_required="continue current stage work and approval flow"
         ;;
@@ -1375,6 +1662,8 @@ handle_resume_stage() {
   append_command_log "$project_path" "$actor" "$cmd" success "stage resumed"
 
   log "Current stage: $stage"
+  log "Current phase: ${current_phase:-phase-1}"
+  log "Current phase goal: ${phase_goal:-mvp}"
   log "Current item: $item"
   log "Status: $status"
   log "Next actor: $next_actor"
@@ -1453,6 +1742,10 @@ done
 [ -n "$command_phrase" ] || die "--command is required"
 [ -f "$registry_path" ] || die "command registry not found: $registry_path"
 
+if [ -n "$project_slug" ] && [ "$project_slug" != "." ] && [ "$project_slug" != "root" ]; then
+  die "single-project mode only accepts --project . (or --project root)."
+fi
+
 project_path=""
 if [ -n "$project_slug" ]; then
   project_path="$(project_path_from_slug "$project_slug")"
@@ -1464,7 +1757,7 @@ command_id="$(resolve_command_id "$command_phrase" || true)"
 [ -n "$command_id" ] || die "unsupported command phrase. refer to workflow/commands.md"
 
 if [ "$command_id" != "intake_start" ]; then
-  [ -n "$project_path" ] || die "no active project state found. run intake command first or pass --project."
+  [ -n "$project_path" ] || die "no active project state found. run intake command first in repository root."
   require_project_state "$project_path"
   enforce_registry_stage "$command_id" "$project_path/00-governance/project-state.yaml"
 fi
@@ -1475,6 +1768,9 @@ case "$command_id" in
     ;;
   review_scope)
     handle_review_scope "$project_path" "$actor" "$command_phrase"
+    ;;
+  start_next_phase)
+    handle_start_next_phase "$project_path" "$actor" "$command_phrase"
     ;;
   lock_scope)
     handle_lock_scope "$project_path" "$actor" "$command_phrase"

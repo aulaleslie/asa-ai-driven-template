@@ -8,13 +8,15 @@ This framework runs as a command-driven, document-first state machine.
 2. Dispatcher validates guards, applies deterministic updates, and logs outcomes.
 3. Human approvals control stage gates and sensitive changes (`approve stage <stage>`).
 4. Project state, command logs, approvals, and handoffs are the operational source of truth.
-5. Project scaffolding is always in repository root unless an explicit `--project` workspace is selected.
+5. Project scaffolding is always in repository root for single-project mode.
+6. Repeated create-project intake commands are rejected; phase expansion uses `start next phase: <goal>`.
 
 ## Stack Lock Checkpoint
 
 - Intake starts with the initial command containing stack values.
 - Stack profile is written to `00-governance/stack-lock.yaml`.
 - `stack_locked: true` is required before moving beyond Discovery.
+- Intake is one-time and captures big-picture expectation for phase-1 (MVP), not detailed implementation planning.
 
 ## 1. Intake
 
@@ -22,6 +24,7 @@ This framework runs as a command-driven, document-first state machine.
 - Outputs: intake request, stack lock, initial state.
 - Gate: human intake confirmation.
 - Next role: Project Manager.
+- Note: after release of each phase, Project Manager starts next requirement cycle with `start next phase: <goal>`.
 
 ## 2. Discovery
 
@@ -94,3 +97,4 @@ No transition is valid without:
 - Single gate command: `approve stage <intake|discovery|analysis|architecture|design|planning|delivery|quality|release>`.
 - Pre-check command: `preflight` (shows exact blockers before approval/advance).
 - Transition to the next stage is blocked until current stage approval exists in `00-governance/approvals.md`.
+- After release approval, new scope iteration starts with `start next phase: <goal>`.

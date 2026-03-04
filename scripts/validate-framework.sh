@@ -23,6 +23,7 @@ missing=0
 required_command_ids=(
   intake_start
   review_scope
+  start_next_phase
   lock_scope
   generate_epics
   start_epic
@@ -60,6 +61,7 @@ done
 required_handlers=(
   handle_intake_start
   handle_review_scope
+  handle_start_next_phase
   handle_lock_scope
   handle_generate_epics
   handle_start_epic
@@ -128,6 +130,11 @@ required_state_keys=(
   last_actor
   scope_locked
   stack_locked
+  project_mode
+  phase_index
+  current_phase
+  current_phase_goal
+  current_phase_status
   active_epic
   active_ticket
   command_last
@@ -150,6 +157,7 @@ required_artifacts=(
   projects/_template/08-quality/Manual_Test_Execution_Log.md
   projects/_template/08-quality/Manual_Test_Feedback.md
   projects/_template/08-quality/Manual_Test_Issues.md
+  projects/_template/00-governance/phases.md
   scripts/generate-manual-test-script.sh
   scripts/validate-manual-test-gate.sh
 )

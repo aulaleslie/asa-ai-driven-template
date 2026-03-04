@@ -15,6 +15,14 @@ command_registry:
       - project_exists
     action_handler: handle_review_scope
     mutates_state: true
+  - id: start_next_phase
+    pattern: '^start next phase: (.+)$'
+    required_stage: release
+    guard_predicates:
+      - project_exists
+      - release_stage_approved
+    action_handler: handle_start_next_phase
+    mutates_state: true
   - id: lock_scope
     pattern: '^lock scope$'
     required_stage: discovery

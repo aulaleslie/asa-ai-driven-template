@@ -43,6 +43,7 @@ The framework enforces explicit handoffs, mandatory human approvals, stack lock 
 
 1. Start project from intake command (stack lock initialized):
    - `./scripts/command-dispatch.sh --command "to project manager: I want to build gym erp | fe=next | be=nest | db=sqlite | cache=redis" --actor human-owner`
+   - This command is one-time initialization and records only big-picture expectation for phase-1 (MVP).
 2. Approve and move through stage gates (single command entry point):
    - `./scripts/command-dispatch.sh --command "preflight" --actor project-manager`
    - `./scripts/command-dispatch.sh --command "approve stage intake" --actor sponsor`
@@ -70,13 +71,17 @@ The framework enforces explicit handoffs, mandatory human approvals, stack lock 
 5. Validate gates:
    - `./scripts/validate-manual-test-gate.sh .`
    - `./scripts/validate-deployability.sh .`
+6. Start a new requirement phase in the same project after release approval:
+   - `./scripts/command-dispatch.sh --command "approve stage release" --actor release-approver`
+   - `./scripts/command-dispatch.sh --command "start next phase: inventory optimization and reporting" --actor human-owner`
 
 ## Scaffolding Behavior
 
 - This template is used inside an already created repository.
-- Commands scaffold project workspaces in repository root by default.
-- `--project` remains available for legacy or multi-workspace usage under `projects/`.
+- This clone supports one project workspace in repository root.
+- `--project` is optional and accepted only as `.` or `root`.
 - The framework never creates or initializes a separate repository.
+- A second create-project intake command is intentionally rejected; extend scope or start a new phase instead.
 
 ## Policy: Development vs Deployment
 

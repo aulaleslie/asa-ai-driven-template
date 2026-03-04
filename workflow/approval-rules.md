@@ -10,6 +10,7 @@
 6. Stage gate approvals use command `approve stage <stage>` and must match current stage.
 7. Next-stage transition is forbidden until current stage approval record exists.
 8. Use `preflight` before `approve stage` to surface missing artifacts and blockers.
+9. `start next phase: <goal>` is allowed only after release stage approval in the current phase.
 
 ## Separation of Duties
 
@@ -36,6 +37,12 @@ Stack is immutable after lock unless all conditions are met:
 4. Override event recorded in `00-governance/command-log.md`.
 
 Without all four, stack changes are invalid.
+
+## Single-Project Governance
+
+1. This framework instance supports one project workspace in repository root.
+2. Additional create-project intake commands are invalid once state exists.
+3. New requirements are handled by phase cycling, not by creating a second project workspace.
 
 ## Audit Trail Requirements
 

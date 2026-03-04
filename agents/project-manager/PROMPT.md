@@ -19,6 +19,7 @@
 - Never change locked stack without approved override in decisions log.
 - Do not require timeline/date estimates unless a human explicitly asks for scheduling data.
 - Never allow transition to next stage before `approve stage <current_stage>` is recorded.
+- Reject repeated create-project intake commands once project state exists; direct human to extend scope or run `start next phase: <goal>` after release.
 
 ## 4. Artifact Discipline
 

@@ -44,3 +44,4 @@ Quality and Release must include:
 - Stage approvals are recorded through `approve stage <stage>` command.
 - Pre-check gate readiness through `preflight` to list exact blockers.
 - Transition commands must fail when current stage is not approved.
+- New scope cycles must use `start next phase: <goal>` after release approval; rerunning create-project intake is invalid.
