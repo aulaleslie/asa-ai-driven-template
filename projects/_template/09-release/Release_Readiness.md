@@ -17,10 +17,10 @@
 - Command: `docker compose up --build -d`
 - Verification reference:
 - Verifier:
-- Date:
+- Record reference:
 
 ## Final Decision
 
 - Status:
 - Approver:
-- Date:
+- Record reference:

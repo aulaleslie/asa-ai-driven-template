@@ -28,6 +28,12 @@ This constitution defines non-negotiable operating rules for all agents and huma
     - Any open manual-test issue blocks manual-test gate approval.
 12. Release deployability evidence is mandatory.
     - Release approval requires evidence for deployment using `docker compose up --build -d`.
+13. In-repo scaffolding only.
+    - Agents must scaffold within the current repository and must not create a new repository.
+14. Delivery is execution-first.
+    - During delivery, active tickets must drive implementation work before producing additional planning artifacts.
+15. No timeline estimation by default.
+    - Date/time estimates are optional and only provided when explicitly requested by a human.
 
 ## Required Operating Behavior
 
@@ -56,7 +62,7 @@ A handoff is invalid unless it includes:
 - Deployment impact summary
 - Manual-test evidence reference for quality/release
 - Open risks and questions
-- Requested action and due-by expectation
+- Requested action
 
 ## Override Protocol
 

@@ -6,6 +6,6 @@
 - Open manual issues:
 - Last manual test result:
 
-| Date | Scope | Result Summary | Blocking Defects | Recommendation |
+| Run Ref | Scope | Result Summary | Blocking Defects | Recommendation |
 | --- | --- | --- | --- | --- |
-| YYYY-MM-DD | Quality + Manual Gate | | | |
+| qa-run-001 | Quality + Manual Gate | | | |

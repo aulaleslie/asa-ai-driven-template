@@ -6,7 +6,6 @@
 - to_role:
 - stage:
 - item_reference:
-- due_by:
 
 ## Stack Profile Reference
 

@@ -50,7 +50,7 @@ Translate business objectives into verifiable requirements.
 
 ## Approval Trace
 
-| Stage | Decision | Approver | Date | Notes |
+| Stage | Decision | Approver | Record Ref | Notes |
 | --- | --- | --- | --- | --- |
 | Analysis | Pending | | | |
 
@@ -66,4 +66,4 @@ Translate business objectives into verifiable requirements.
 - Prepared by:
 - Reviewed by:
 - Approved by:
-- Date:
+- Record reference:

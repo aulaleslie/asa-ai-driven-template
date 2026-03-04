@@ -9,6 +9,7 @@ Usage:
 Examples:
   $(basename "$0") --command "to project manager: I want to build gym erp | fe=next | be=nest | db=sqlite | cache=redis" --actor human-owner
   $(basename "$0") --project gym-erp --command "lock scope" --actor project-manager
+  $(basename "$0") --project gym-erp --command "execute current ticket" --actor software-developer
   $(basename "$0") --project gym-erp --command "prepare manual test" --actor sdet
 USAGE
 }
@@ -125,7 +126,7 @@ append_approval_entry() {
     cat > "$approvals" <<APP
 # Approvals Log
 
-| Date | Stage | Artifact(s) | Decision | Decision Maker | Notes |
+| Record Ref | Stage | Artifact(s) | Decision | Decision Maker | Notes |
 | --- | --- | --- | --- | --- | --- |
 APP
   }
@@ -416,6 +417,88 @@ validate_severity() {
   esac
 }
 
+registry_path="workflow/command-registry.yaml"
+
+registry_field() {
+  local command_id="$1"
+  local field="$2"
+  awk -v id="$command_id" -v field="$field" '
+    function strip_quotes(v) {
+      sub(/^'\''/, "", v)
+      sub(/'\''$/, "", v)
+      return v
+    }
+    $1 == "-" && $2 == "id:" {
+      in_item = ($3 == id)
+      next
+    }
+    in_item && $1 == field ":" {
+      $1 = ""
+      sub(/^[[:space:]]+/, "", $0)
+      print strip_quotes($0)
+      exit
+    }
+  ' "$registry_path"
+}
+
+resolve_command_id() {
+  local phrase="$1"
+  local id pattern
+
+  while IFS=$'\t' read -r id pattern; do
+    if [[ "$phrase" =~ $pattern ]]; then
+      echo "$id"
+      return 0
+    fi
+  done < <(
+    awk '
+      function strip_quotes(v) {
+        sub(/^'\''/, "", v)
+        sub(/'\''$/, "", v)
+        return v
+      }
+      $1 == "-" && $2 == "id:" {
+        id = $3
+        next
+      }
+      $1 == "pattern:" && id != "" {
+        $1 = ""
+        sub(/^[[:space:]]+/, "", $0)
+        print id "\t" strip_quotes($0)
+        id = ""
+      }
+    ' "$registry_path"
+  )
+
+  return 1
+}
+
+enforce_registry_stage() {
+  local command_id="$1"
+  local state_file="$2"
+  local required current trimmed
+  local matched=false
+
+  required="$(registry_field "$command_id" required_stage)"
+  [ -n "$required" ] || die "required_stage missing for command id: $command_id"
+
+  case "$required" in
+    none|any) return 0 ;;
+  esac
+
+  current="$(state_value current_stage "$state_file")"
+  IFS=',' read -r -a allowed <<< "$required"
+  for candidate in "${allowed[@]}"; do
+    trimmed="$(echo "$candidate" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')"
+    if [ "$current" = "$trimmed" ]; then
+      matched=true
+      break
+    fi
+  done
+
+  [ "$matched" = true ] || die "command '$command_id' requires stage '$required' (current: $current)"
+}
+
 handle_intake_start() {
   local cmd="$1"
   local actor="$2"
@@ -618,6 +701,34 @@ handle_start_ticket() {
   set_state_value "$state_file" command_last start_ticket
   append_command_log "$project_path" "$actor" "$cmd" success "ticket context started"
   log "Ticket context started for $epic_id/$ticket_id"
+}
+
+handle_execute_ticket() {
+  local project_path="$1"
+  local actor="$2"
+  local cmd="$3"
+  local state_file="$project_path/00-governance/project-state.yaml"
+  local epic ticket ticket_dir
+
+  require_project_state "$project_path"
+  require_stage delivery "$state_file"
+
+  epic="$(state_value active_epic "$state_file")"
+  ticket="$(state_value active_ticket "$state_file")"
+  [ -n "$epic" ] && [ "$epic" != "none" ] || die "active_epic not set"
+  [ -n "$ticket" ] && [ "$ticket" != "none" ] || die "active_ticket not set"
+
+  ticket_dir="$project_path/07-delivery/$epic/$ticket"
+  [ -d "$ticket_dir" ] || die "active ticket directory missing: $ticket_dir"
+
+  set_state_value "$state_file" current_item "$epic/$ticket-execution"
+  set_state_value "$state_file" status in_progress
+  set_state_value "$state_file" next_actor software-developer
+  set_state_value "$state_file" last_actor "$actor"
+  set_state_value "$state_file" command_last execute_ticket
+
+  append_command_log "$project_path" "$actor" "$cmd" success "ticket execution in progress"
+  log "Execution started for $epic/$ticket"
 }
 
 handle_approve_brd() {
@@ -1088,68 +1199,84 @@ while [ "$#" -gt 0 ]; do
 done
 
 [ -n "$command_phrase" ] || die "--command is required"
+[ -f "$registry_path" ] || die "command registry not found: $registry_path"
 
 project_path=""
 if [ -n "$project_slug" ]; then
   project_path="$(project_path_from_slug "$project_slug")"
 fi
 
-if [[ "$command_phrase" =~ ^to\ project\ manager:\ I\ want\ to\ build\ .+\ \|\ fe=.+\ \|\ be=.+\ \|\ db=.+\ \|\ cache=.+$ ]]; then
-  handle_intake_start "$command_phrase" "$actor" "$project_slug"
-elif [ "$command_phrase" = "review scope" ]; then
-  [ -n "$project_path" ] || die "--project is required for 'review scope'"
-  handle_review_scope "$project_path" "$actor" "$command_phrase"
-elif [ "$command_phrase" = "lock scope" ]; then
-  [ -n "$project_path" ] || die "--project is required for 'lock scope'"
-  handle_lock_scope "$project_path" "$actor" "$command_phrase"
-elif [ "$command_phrase" = "generate epics" ]; then
-  [ -n "$project_path" ] || die "--project is required for 'generate epics'"
-  handle_generate_epics "$project_path" "$actor" "$command_phrase"
-elif [[ "$command_phrase" =~ ^start\ epic-[0-9]+$ ]]; then
-  [ -n "$project_path" ] || die "--project is required for start epic command"
-  handle_start_epic "$project_path" "$actor" "$command_phrase"
-elif [[ "$command_phrase" =~ ^start\ epic-[0-9]+-ticket-[0-9]+$ ]]; then
-  [ -n "$project_path" ] || die "--project is required for start ticket command"
-  handle_start_ticket "$project_path" "$actor" "$command_phrase"
-elif [ "$command_phrase" = "approve BRD" ]; then
-  [ -n "$project_path" ] || die "--project is required for 'approve BRD'"
-  handle_approve_brd "$project_path" "$actor" "$command_phrase"
-elif [[ "$command_phrase" =~ ^reject\ Architecture\ with\ notes:\ .+$ ]]; then
-  [ -n "$project_path" ] || die "--project is required for reject architecture command"
-  handle_reject_architecture "$project_path" "$actor" "$command_phrase"
-elif [ "$command_phrase" = "prepare manual test" ]; then
-  [ -n "$project_path" ] || die "--project is required for 'prepare manual test'"
-  handle_prepare_manual_test "$project_path" "$actor" "$command_phrase"
-elif [ "$command_phrase" = "start manual test" ]; then
-  [ -n "$project_path" ] || die "--project is required for 'start manual test'"
-  handle_start_manual_test "$project_path" "$actor" "$command_phrase"
-elif [[ "$command_phrase" =~ ^submit\ manual\ test\ failed:\ .+\ \|\ severity=(critical|high|medium|low)\ \|\ details=.+$ ]]; then
-  [ -n "$project_path" ] || die "--project is required for 'submit manual test failed: ...'"
-  handle_submit_manual_test_failed "$project_path" "$actor" "$command_phrase"
-elif [[ "$command_phrase" =~ ^resolve\ manual\ issue\ MTI-[0-9]+\ with\ notes:\ .+$ ]]; then
-  [ -n "$project_path" ] || die "--project is required for 'resolve manual issue ...'"
-  handle_resolve_manual_issue "$project_path" "$actor" "$command_phrase"
-elif [[ "$command_phrase" =~ ^retest\ manual\ issue\ MTI-[0-9]+\ passed$ ]]; then
-  [ -n "$project_path" ] || die "--project is required for 'retest manual issue ... passed'"
-  handle_retest_manual_issue_passed "$project_path" "$actor" "$command_phrase"
-elif [[ "$command_phrase" =~ ^retest\ manual\ issue\ MTI-[0-9]+\ failed:\ .+$ ]]; then
-  [ -n "$project_path" ] || die "--project is required for 'retest manual issue ... failed: ...'"
-  handle_retest_manual_issue_failed "$project_path" "$actor" "$command_phrase"
-elif [ "$command_phrase" = "submit manual test passed" ]; then
-  [ -n "$project_path" ] || die "--project is required for 'submit manual test passed'"
-  handle_submit_manual_test_passed "$project_path" "$actor" "$command_phrase"
-elif [ "$command_phrase" = "approve manual test gate" ]; then
-  [ -n "$project_path" ] || die "--project is required for 'approve manual test gate'"
-  handle_approve_manual_test_gate "$project_path" "$actor" "$command_phrase"
-elif [ "$command_phrase" = "show blockers" ]; then
-  [ -n "$project_path" ] || die "--project is required for 'show blockers'"
-  handle_show_blockers "$project_path"
-elif [ "$command_phrase" = "resume current stage" ]; then
-  [ -n "$project_path" ] || die "--project is required for 'resume current stage'"
-  handle_resume_stage "$project_path" "$actor" "$command_phrase"
-elif [ "$command_phrase" = "close ticket" ]; then
-  [ -n "$project_path" ] || die "--project is required for 'close ticket'"
-  handle_close_ticket "$project_path" "$actor" "$command_phrase"
-else
-  die "unsupported command phrase. refer to workflow/commands.md"
+command_id="$(resolve_command_id "$command_phrase" || true)"
+[ -n "$command_id" ] || die "unsupported command phrase. refer to workflow/commands.md"
+
+if [ "$command_id" != "intake_start" ]; then
+  [ -n "$project_path" ] || die "--project is required for '$command_id'"
+  require_project_state "$project_path"
+  enforce_registry_stage "$command_id" "$project_path/00-governance/project-state.yaml"
 fi
+
+case "$command_id" in
+  intake_start)
+    handle_intake_start "$command_phrase" "$actor" "$project_slug"
+    ;;
+  review_scope)
+    handle_review_scope "$project_path" "$actor" "$command_phrase"
+    ;;
+  lock_scope)
+    handle_lock_scope "$project_path" "$actor" "$command_phrase"
+    ;;
+  generate_epics)
+    handle_generate_epics "$project_path" "$actor" "$command_phrase"
+    ;;
+  start_epic)
+    handle_start_epic "$project_path" "$actor" "$command_phrase"
+    ;;
+  start_ticket)
+    handle_start_ticket "$project_path" "$actor" "$command_phrase"
+    ;;
+  execute_ticket)
+    handle_execute_ticket "$project_path" "$actor" "$command_phrase"
+    ;;
+  approve_brd)
+    handle_approve_brd "$project_path" "$actor" "$command_phrase"
+    ;;
+  reject_architecture)
+    handle_reject_architecture "$project_path" "$actor" "$command_phrase"
+    ;;
+  prepare_manual_test)
+    handle_prepare_manual_test "$project_path" "$actor" "$command_phrase"
+    ;;
+  start_manual_test)
+    handle_start_manual_test "$project_path" "$actor" "$command_phrase"
+    ;;
+  submit_manual_test_failed)
+    handle_submit_manual_test_failed "$project_path" "$actor" "$command_phrase"
+    ;;
+  resolve_manual_issue)
+    handle_resolve_manual_issue "$project_path" "$actor" "$command_phrase"
+    ;;
+  retest_manual_issue_passed)
+    handle_retest_manual_issue_passed "$project_path" "$actor" "$command_phrase"
+    ;;
+  retest_manual_issue_failed)
+    handle_retest_manual_issue_failed "$project_path" "$actor" "$command_phrase"
+    ;;
+  submit_manual_test_passed)
+    handle_submit_manual_test_passed "$project_path" "$actor" "$command_phrase"
+    ;;
+  approve_manual_test_gate)
+    handle_approve_manual_test_gate "$project_path" "$actor" "$command_phrase"
+    ;;
+  show_blockers)
+    handle_show_blockers "$project_path"
+    ;;
+  resume_stage)
+    handle_resume_stage "$project_path" "$actor" "$command_phrase"
+    ;;
+  close_ticket)
+    handle_close_ticket "$project_path" "$actor" "$command_phrase"
+    ;;
+  *)
+    die "unhandled command id '$command_id'. update scripts/command-dispatch.sh."
+    ;;
+esac

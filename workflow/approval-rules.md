@@ -4,7 +4,7 @@
 
 1. Human approval is mandatory for every stage transition.
 2. No role may approve its own authored work.
-3. Approval entries must reference artifact paths and date.
+3. Approval entries must reference artifact paths and a record reference.
 4. Rejections must include concrete corrections and owner.
 5. Approval outcomes must be logged in governance artifacts.
 

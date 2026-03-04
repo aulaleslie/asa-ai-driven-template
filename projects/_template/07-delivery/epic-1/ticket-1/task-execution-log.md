@@ -1,5 +1,5 @@
 # Task Execution Log
 
-| Date | Actor | Action | Outcome | Notes |
+| Event Ref | Actor | Action | Outcome | Notes |
 | --- | --- | --- | --- | --- |
-| YYYY-MM-DD | software-developer | | | |
+| run-001 | software-developer | | | |

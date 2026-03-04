@@ -10,7 +10,7 @@ Copy this directory to `projects/<project-slug>` and execute delivery via comman
 - `03-analysis/` requirements and glossary
 - `04-architecture/` technical design and ADRs
 - `05-design/` UX and component mapping
-- `06-planning/` roadmap, epics, tickets, sprint plan
+- `06-planning/` delivery sequence, epics, tickets, execution plan
 - `07-delivery/` implementation packets by epic/ticket
 - `08-quality/` strategy, test cases, QA evidence
 - `08-quality/` strategy, test cases, QA evidence, manual-test gate artifacts
@@ -27,3 +27,4 @@ Copy this directory to `projects/<project-slug>` and execute delivery via comman
 - Record command mutations in `00-governance/command-log.md`.
 - Respect stack lock in `00-governance/stack-lock.yaml`.
 - Manual-test gate requires generated script execution and issue closure before quality approval.
+- This workspace is inside the current repository; do not create a new repository during scaffolding.

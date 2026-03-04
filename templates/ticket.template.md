@@ -47,7 +47,7 @@ Define an implementable and testable unit of work.
 
 ## Approval Trace
 
-| Stage | Decision | Approver | Date | Notes |
+| Stage | Decision | Approver | Record Ref | Notes |
 | --- | --- | --- | --- | --- |
 | Delivery | Pending | | | |
 

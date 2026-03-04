@@ -8,7 +8,6 @@
 ## Request Summary
 
 - Requestor:
-- Date:
 - Problem statement:
 - Desired outcome:
 
@@ -21,9 +20,9 @@
 
 ## Constraints
 
-- Timeline:
 - Budget:
 - Compliance/security:
+- Technical/operational constraints:
 
 ## Initial Success Criteria
 

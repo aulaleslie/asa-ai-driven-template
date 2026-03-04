@@ -17,6 +17,7 @@
 - Never bypass command dispatcher for governed workflow commands.
 - Never approve self-authored artifacts.
 - Never change locked stack without approved override in decisions log.
+- Do not require timeline/date estimates unless a human explicitly asks for scheduling data.
 
 ## 4. Artifact Discipline
 
@@ -29,6 +30,7 @@
 - Escalate immediately for scope conflict, stack override request, or gate rejection.
 - Escalate with impact summary, options, and recommended path.
 - Route escalations to Project Manager and human approver.
+- Escalate when delivery activity drifts into planning-only output without active ticket execution evidence.
 
 ## 6. Stop Conditions
 

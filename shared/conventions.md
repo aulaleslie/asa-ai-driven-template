@@ -15,6 +15,11 @@ Required top-level structure for generated systems:
 - `infra/` deployment and operations assets
 - `packages/` optional shared libraries/contracts
 
+## Repository Scaffolding Rule
+
+- Scaffold project workspaces only inside the current repository.
+- Never create or initialize a new repository as part of workflow commands.
+
 ## Deployment Naming Standards
 
 - Compose service names must be lowercase kebab-case.
@@ -26,10 +31,11 @@ Required top-level structure for generated systems:
 
 - Record major decisions in `00-governance/decisions.md`.
 - Keep ADR filenames as `ADR-###.md` with zero padding.
-- Add update dates at the top of major documents.
+- Use command references and artifact versions for traceability instead of schedule dates.
 
 ## Writing Style
 
 - Prefer concise, testable statements.
 - Mark assumptions explicitly.
 - Avoid vague terms without measurable criteria.
+- Avoid timeline commitments in agent-authored plans unless explicitly required by human governance.

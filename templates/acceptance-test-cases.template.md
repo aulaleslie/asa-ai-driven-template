@@ -55,7 +55,7 @@ Capture acceptance-level verification mapped to requirements.
 
 ## Approval Trace
 
-| Stage | Decision | Approver | Date | Notes |
+| Stage | Decision | Approver | Record Ref | Notes |
 | --- | --- | --- | --- | --- |
 | Quality | Pending | | | |
 
@@ -71,4 +71,4 @@ Capture acceptance-level verification mapped to requirements.
 
 - Authored by:
 - Reviewed by:
-- Date:
+- Record reference:

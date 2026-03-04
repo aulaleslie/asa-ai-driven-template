@@ -13,12 +13,12 @@
 
 ## Evidence Log
 
-| Date | Validator | Result | Notes |
+| Run Ref | Validator | Result | Notes |
 | --- | --- | --- | --- |
-| YYYY-MM-DD | | Pending | |
+| deploy-check-001 | | Pending | |
 
 ## Approval
 
 - Decision:
 - Approver:
-- Date:
+- Record reference:

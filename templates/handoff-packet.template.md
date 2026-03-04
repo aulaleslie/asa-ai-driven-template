@@ -41,7 +41,6 @@ Standardize explicit handoff communication between roles.
 - to_role:
 - stage:
 - item_reference:
-- due_by:
 
 ## 2. Artifact Index
 - path:
@@ -54,7 +53,7 @@ Standardize explicit handoff communication between roles.
 
 ## Approval Trace
 
-| Stage | Decision | Approver | Date | Notes |
+| Stage | Decision | Approver | Record Ref | Notes |
 | --- | --- | --- | --- | --- |
 | Current | Pending | | | |
 
@@ -68,4 +67,3 @@ Standardize explicit handoff communication between roles.
 
 - Receiver outcome:
 - Conditions/notes:
-- Date:

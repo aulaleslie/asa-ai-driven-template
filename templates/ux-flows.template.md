@@ -46,7 +46,7 @@ Define user journeys, states, and interaction outcomes.
 
 ## Approval Trace
 
-| Stage | Decision | Approver | Date | Notes |
+| Stage | Decision | Approver | Record Ref | Notes |
 | --- | --- | --- | --- | --- |
 | Design | Pending | | | |
 
@@ -62,4 +62,4 @@ Define user journeys, states, and interaction outcomes.
 - Designed by:
 - Reviewed by:
 - Approved by:
-- Date:
+- Record reference:

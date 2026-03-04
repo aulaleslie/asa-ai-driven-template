@@ -53,7 +53,7 @@ Describe technical design that satisfies functional and non-functional requireme
 
 ## Approval Trace
 
-| Stage | Decision | Approver | Date | Notes |
+| Stage | Decision | Approver | Record Ref | Notes |
 | --- | --- | --- | --- | --- |
 | Architecture | Pending | | | |
 
@@ -69,4 +69,4 @@ Describe technical design that satisfies functional and non-functional requireme
 - Authored by:
 - Reviewed by:
 - Approved by:
-- Date:
+- Record reference:

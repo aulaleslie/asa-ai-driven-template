@@ -47,7 +47,7 @@ Capture architecture decisions with rationale and consequences.
 
 ## Approval Trace
 
-| Stage | Decision | Approver | Date | Notes |
+| Stage | Decision | Approver | Record Ref | Notes |
 | --- | --- | --- | --- | --- |
 | Architecture | Pending | | | |
 
@@ -62,4 +62,4 @@ Capture architecture decisions with rationale and consequences.
 
 - Decision owner:
 - Reviewers:
-- Date:
+- Record reference:

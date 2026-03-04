@@ -21,6 +21,7 @@ Additional hardening responsibilities:
 - Command-driven execution role: Executes delivery commands and maintains state-consistent ticket progression.
 - Monorepo path mapping responsibility: apps/, services/, optional packages/, infra/deploy references in delivery docs.
 - Deployment contract responsibility: Ensures implementation artifacts include containerization and compose-impact readiness notes.
+- Delivery behavior responsibility: Default to execution-first work on active ticket; avoid timeline estimation unless explicitly requested.
 
 ## 5. Must Not Do
 

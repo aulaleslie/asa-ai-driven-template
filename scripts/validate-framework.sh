@@ -27,6 +27,7 @@ required_command_ids=(
   generate_epics
   start_epic
   start_ticket
+  execute_ticket
   approve_brd
   reject_architecture
   prepare_manual_test
@@ -60,6 +61,7 @@ required_handlers=(
   handle_generate_epics
   handle_start_epic
   handle_start_ticket
+  handle_execute_ticket
   handle_approve_brd
   handle_reject_architecture
   handle_prepare_manual_test
@@ -78,6 +80,33 @@ required_handlers=(
 for h in "${required_handlers[@]}"; do
   if ! grep -Eq "^${h}\(\)" scripts/command-dispatch.sh; then
     log "MISSING handler in command-dispatch: $h"
+    missing=1
+  fi
+done
+
+if ! grep -Fq "resolve_command_id" scripts/command-dispatch.sh; then
+  log "MISSING registry-driven command resolution in command-dispatch.sh"
+  missing=1
+fi
+
+for cmd_id in "${required_command_ids[@]}"; do
+  registry_stage="$(
+    awk -v id="$cmd_id" '
+      $1 == "-" && $2 == "id:" { in_item = ($3 == id); next }
+      in_item && $1 == "required_stage:" {
+        $1 = ""
+        sub(/^[[:space:]]+/, "", $0)
+        print $0
+        exit
+      }
+    ' workflow/command-registry.yaml
+  )"
+  line="$(grep -E "^\|[[:space:]]*${cmd_id}[[:space:]]*\|" workflow/commands.md | head -n1 || true)"
+  if [ -z "$line" ] || [ -z "$registry_stage" ]; then
+    continue
+  fi
+  if ! echo "$line" | grep -Fq "| $registry_stage |"; then
+    log "STAGE MISMATCH for $cmd_id (expected in commands.md: '$registry_stage')"
     missing=1
   fi
 done

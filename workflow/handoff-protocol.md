@@ -18,12 +18,11 @@ Define strict, explicit handoffs between specialized agents and humans.
 10. `open_risks`
 11. `open_questions`
 12. `requested_action`
-13. `due_by`
 
 ## Handoff Rules
 
 - Sender must ensure artifacts are current and linked.
-- Receiver must acknowledge handoff status within agreed SLA.
+- Receiver acknowledges handoff status when triggered by human workflow.
 - `stack_profile_ref` must point to `00-governance/stack-lock.yaml`.
 - Deployment-impact section is mandatory for delivery, quality, and release handoffs.
 - Quality/release handoffs must include `manual_test_evidence_ref`.

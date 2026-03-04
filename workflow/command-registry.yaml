@@ -10,7 +10,7 @@ command_registry:
     mutates_state: true
   - id: review_scope
     pattern: '^review scope$'
-    required_stage: discovery
+    required_stage: intake,discovery
     guard_predicates:
       - project_exists
     action_handler: handle_review_scope
@@ -25,7 +25,7 @@ command_registry:
     mutates_state: true
   - id: generate_epics
     pattern: '^generate epics$'
-    required_stage: planning
+    required_stage: analysis,planning
     guard_predicates:
       - scope_locked
       - brd_approved
@@ -33,7 +33,7 @@ command_registry:
     mutates_state: true
   - id: start_epic
     pattern: '^start epic-([0-9]+)$'
-    required_stage: delivery
+    required_stage: planning,delivery
     guard_predicates:
       - project_exists
     action_handler: handle_start_epic
@@ -44,6 +44,13 @@ command_registry:
     guard_predicates:
       - project_exists
     action_handler: handle_start_ticket
+    mutates_state: true
+  - id: execute_ticket
+    pattern: '^execute current ticket$'
+    required_stage: delivery
+    guard_predicates:
+      - active_ticket_present
+    action_handler: handle_execute_ticket
     mutates_state: true
   - id: approve_brd
     pattern: '^approve BRD$'

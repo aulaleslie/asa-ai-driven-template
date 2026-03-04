@@ -23,4 +23,4 @@
 
 - Status: Draft
 - Approver:
-- Date:
+- Record reference:

@@ -3,6 +3,7 @@
 ## Purpose
 
 Describe execution approach for a ticket before implementation.
+Focus on immediate implementation sequencing and checks, not calendar estimates.
 
 ## Inputs
 
@@ -46,7 +47,7 @@ Describe execution approach for a ticket before implementation.
 
 ## Approval Trace
 
-| Stage | Decision | Approver | Date | Notes |
+| Stage | Decision | Approver | Record Ref | Notes |
 | --- | --- | --- | --- | --- |
 | Delivery | Pending | | | |
 
@@ -61,4 +62,4 @@ Describe execution approach for a ticket before implementation.
 
 - Prepared by:
 - Reviewed by:
-- Date:
+- Record reference:

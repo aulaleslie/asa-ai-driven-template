@@ -67,7 +67,7 @@ Define project intent, business outcome, scope boundaries, and governance baseli
 
 ## Approval Trace
 
-| Stage | Decision | Approver | Date | Notes |
+| Stage | Decision | Approver | Record Ref | Notes |
 | --- | --- | --- | --- | --- |
 | Intake | Pending | | | |
 
@@ -83,4 +83,4 @@ Define project intent, business outcome, scope boundaries, and governance baseli
 - Prepared by:
 - Reviewed by:
 - Approved by:
-- Date:
+- Record reference:

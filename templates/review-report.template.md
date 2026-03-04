@@ -64,7 +64,7 @@ Record structured review findings, severity, and disposition.
 
 ## Approval Trace
 
-| Stage | Decision | Approver | Date | Notes |
+| Stage | Decision | Approver | Record Ref | Notes |
 | --- | --- | --- | --- | --- |
 | Current | Pending | | | |
 
@@ -80,4 +80,4 @@ Record structured review findings, severity, and disposition.
 
 - Reviewer:
 - Reviewed artifact:
-- Date:
+- Record reference:

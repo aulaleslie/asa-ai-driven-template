@@ -66,7 +66,7 @@ Define quality approach, test levels, manual gate execution, and coverage priori
 
 ## Approval Trace
 
-| Stage | Decision | Approver | Date | Notes |
+| Stage | Decision | Approver | Record Ref | Notes |
 | --- | --- | --- | --- | --- |
 | Quality | Pending | | | |
 
@@ -83,4 +83,4 @@ Define quality approach, test levels, manual gate execution, and coverage priori
 - Prepared by:
 - Reviewed by:
 - Approved by:
-- Date:
+- Record reference:

@@ -42,7 +42,7 @@ Maintain precise, shared domain terminology.
 
 ## Approval Trace
 
-| Stage | Decision | Approver | Date | Notes |
+| Stage | Decision | Approver | Record Ref | Notes |
 | --- | --- | --- | --- | --- |
 | Analysis | Pending | | | |
 

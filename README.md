@@ -26,6 +26,8 @@ The framework enforces explicit handoffs, mandatory human approvals, stack lock 
 5. Quality gate includes mandatory human manual-test execution using generated runbook.
 6. Release readiness requires deployment evidence for:
    - `docker compose up --build -d`
+7. Scaffolding is always in-place in the current repository (no new repository creation).
+8. Planning is execution-sequencing only; timeline/date estimation is not required unless a human explicitly asks.
 
 ## Repository Layout
 
@@ -45,15 +47,26 @@ The framework enforces explicit handoffs, mandatory human approvals, stack lock 
    - `./scripts/command-dispatch.sh --project gym-erp --command "review scope" --actor business-analyst`
    - `./scripts/command-dispatch.sh --project gym-erp --command "lock scope" --actor project-manager`
    - `./scripts/command-dispatch.sh --project gym-erp --command "generate epics" --actor project-manager`
-3. Run manual-test gate inside quality stage:
+3. Move into delivery execution:
+   - `./scripts/command-dispatch.sh --project gym-erp --command "start epic-1" --actor project-manager`
+   - `./scripts/command-dispatch.sh --project gym-erp --command "start epic-1-ticket-1" --actor software-developer`
+   - `./scripts/command-dispatch.sh --project gym-erp --command "execute current ticket" --actor software-developer`
+   - `./scripts/command-dispatch.sh --project gym-erp --command "close ticket" --actor software-developer`
+4. Run manual-test gate inside quality stage:
    - `./scripts/command-dispatch.sh --project gym-erp --command "prepare manual test" --actor sdet`
    - `./scripts/command-dispatch.sh --project gym-erp --command "submit manual test failed: login flow broken | severity=high | details=login button returns 500" --actor human-tester`
    - `./scripts/command-dispatch.sh --project gym-erp --command "resolve manual issue MTI-001 with notes: fixed API route mismatch" --actor software-developer`
    - `./scripts/command-dispatch.sh --project gym-erp --command "retest manual issue MTI-001 passed" --actor human-tester`
    - `./scripts/command-dispatch.sh --project gym-erp --command "approve manual test gate" --actor qa-lead`
-4. Validate gates:
+5. Validate gates:
    - `./scripts/validate-manual-test-gate.sh projects/gym-erp`
    - `./scripts/validate-deployability.sh projects/gym-erp`
+
+## Scaffolding Behavior
+
+- This template is used inside an already created repository.
+- Commands scaffold project workspaces under `projects/` in the current repository.
+- The framework never creates or initializes a separate repository.
 
 ## Policy: Development vs Deployment
 

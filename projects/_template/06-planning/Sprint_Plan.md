@@ -1,10 +1,10 @@
-# Sprint Plan
+# Execution Plan
 
-## Sprint Goal
+## Plan Objective
 
 ## Planned Tickets
 
 1.
 2.
 
-## Capacity and Risks
+## Dependencies and Risks

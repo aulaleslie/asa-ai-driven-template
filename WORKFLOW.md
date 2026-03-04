@@ -8,6 +8,7 @@ This framework runs as a command-driven, document-first state machine.
 2. Dispatcher validates guards, applies deterministic updates, and logs outcomes.
 3. Human approvals control stage gates and sensitive changes.
 4. Project state, command logs, approvals, and handoffs are the operational source of truth.
+5. Project scaffolding is always in-place in the current repository.
 
 ## Stack Lock Checkpoint
 
@@ -52,14 +53,14 @@ This framework runs as a command-driven, document-first state machine.
 
 ## 6. Planning
 
-- Intent: create executable epics/tickets.
-- Outputs: roadmap, epics, tickets, sprint plan.
+- Intent: create executable epics/tickets and dependency order.
+- Outputs: delivery sequence, epics, tickets, execution plan (no required calendar timeline).
 - Gate: human delivery plan approval.
 - Next role: Software Developer.
 
 ## 7. Delivery
 
-- Intent: execute tickets with explicit handoff packets.
+- Intent: execute tickets with explicit handoff packets and code-first progress on the active ticket.
 - Outputs: ticket artifacts, implementation plan, review report.
 - Gate: human acceptance of delivery evidence.
 - Next role: SDET.

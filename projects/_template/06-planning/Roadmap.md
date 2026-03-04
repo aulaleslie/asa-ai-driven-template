@@ -1,7 +1,7 @@
 # Roadmap
 
-## Delivery Milestones
+## Delivery Sequence
 
-| Milestone | Description | Target Date | Owner | Status |
+| Sequence | Description | Owner | Status | Dependencies |
 | --- | --- | --- | --- | --- |
-| M-1 | | YYYY-MM-DD | | Planned |
+| 1 | | | Planned | |

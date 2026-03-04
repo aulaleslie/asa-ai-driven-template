@@ -47,7 +47,7 @@ Define entities, relationships, constraints, and ownership.
 
 ## Approval Trace
 
-| Stage | Decision | Approver | Date | Notes |
+| Stage | Decision | Approver | Record Ref | Notes |
 | --- | --- | --- | --- | --- |
 | Architecture | Pending | | | |
 
@@ -63,4 +63,4 @@ Define entities, relationships, constraints, and ownership.
 - Authored by:
 - Reviewed by:
 - Approved by:
-- Date:
+- Record reference:

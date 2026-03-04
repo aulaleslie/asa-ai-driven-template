@@ -7,6 +7,8 @@
 
 ## Approach Summary
 
+Execution-focused summary only (no timeline/date estimates by default).
+
 ## Work Breakdown
 
 1.

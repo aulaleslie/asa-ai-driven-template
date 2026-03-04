@@ -6,6 +6,7 @@ usage() {
 Usage: $(basename "$0") <project-slug> [--fe <value> --be <value> --db <value> --cache <value>]
 
 Create a new project workspace from projects/_template and initialize governance state.
+This script scaffolds inside the current repository only (no new repository creation).
 Example:
   $(basename "$0") gym-erp --fe next --be nest --db sqlite --cache redis
 USAGE

@@ -2,11 +2,11 @@
 
 ## Purpose
 
-Group related outcomes into a delivery unit aligned with roadmap goals.
+Group related outcomes into a delivery unit aligned with delivery-sequence goals.
 
 ## Inputs
 
-- Approved roadmap
+- Approved delivery sequence
 - Requirement clusters
 
 ## Command Context
@@ -45,7 +45,7 @@ Group related outcomes into a delivery unit aligned with roadmap goals.
 
 ## Approval Trace
 
-| Stage | Decision | Approver | Date | Notes |
+| Stage | Decision | Approver | Record Ref | Notes |
 | --- | --- | --- | --- | --- |
 | Planning | Pending | | | |
 
