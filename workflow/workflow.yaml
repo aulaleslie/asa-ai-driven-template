@@ -68,6 +68,7 @@ state_machine:
       invariants:
         stack_locked: true
         scope_locked: true
+        development_method: stack_aware_tdd_ddd_or_approved_equivalent
     delivery:
       required_artifacts:
         - <workspace>/07-delivery/epic-1/epic.md
@@ -80,6 +81,7 @@ state_machine:
       invariants:
         stack_locked: true
         scope_locked: true
+        tdd_domain_evidence: required
     quality:
       required_artifacts:
         - <workspace>/08-quality/Test_Strategy.md
@@ -97,6 +99,7 @@ state_machine:
         stack_locked: true
         scope_locked: true
         deployment_contract: required
+        tdd_domain_evidence: verified
         manual_test_gate_status: approved_required_for_release
         open_manual_issues: 0_required_for_release_transition
     release:

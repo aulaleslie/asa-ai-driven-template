@@ -32,6 +32,11 @@ Capture acceptance-level verification mapped to requirements.
 - Deployment-related acceptance cases:
 - Service startup/dependency checks:
 
+## Domain Verification Mapping
+
+- Domain capability per test case:
+- Rule/invariant coverage notes:
+
 ## Manual Test Gate Strategy
 
 - Which cases are human-manual mandatory:
@@ -66,6 +71,7 @@ Capture acceptance-level verification mapped to requirements.
 - [ ] Negative/edge cases are included where relevant.
 - [ ] Deployment acceptance coverage is present.
 - [ ] Manual-test issue linkage is documented for failures.
+- [ ] Domain capability/rule coverage is explicit.
 
 ## Sign-Off
 

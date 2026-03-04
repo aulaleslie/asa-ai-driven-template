@@ -38,6 +38,18 @@ Describe technical design that satisfies functional and non-functional requireme
 - Networking/ports:
 - Environment contracts:
 
+## Stack-Aware Development Method
+
+- Default method: TDD + DDD
+- Selected stack-specific method notes:
+- If not pure TDD/DDD, approved equivalent and rationale:
+
+## Domain Model and Boundaries
+
+- Bounded contexts:
+- Aggregates/entities/value objects:
+- Ubiquitous language references:
+
 ## Required Sections
 
 ## 1. Architecture Overview
@@ -48,8 +60,10 @@ Describe technical design that satisfies functional and non-functional requireme
 ## 6. NFR Strategy
 ## 7. Security and Compliance Considerations
 ## 8. Operational Considerations
-## 9. Risks and Tradeoffs
-## 10. ADR References
+## 9. Stack-Aware Development Method
+## 10. Domain Model and Boundaries
+## 11. Risks and Tradeoffs
+## 12. ADR References
 
 ## Approval Trace
 
@@ -63,6 +77,7 @@ Describe technical design that satisfies functional and non-functional requireme
 - [ ] Major tradeoffs are documented.
 - [ ] Risks have mitigation direction.
 - [ ] Architecture-to-compose mapping is explicit.
+- [ ] Stack-aware TDD/DDD (or approved equivalent) is explicitly documented.
 
 ## Sign-Off
 

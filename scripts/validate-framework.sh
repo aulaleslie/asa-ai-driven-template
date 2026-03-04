@@ -92,6 +92,20 @@ for h in "${required_handlers[@]}"; do
   fi
 done
 
+required_method_handlers=(
+  has_method_evidence_in_file
+  has_architecture_method_evidence
+  has_delivery_method_evidence
+  has_quality_method_evidence
+)
+
+for h in "${required_method_handlers[@]}"; do
+  if ! grep -Eq "^${h}\(\)" scripts/command-dispatch.sh; then
+    log "MISSING method-evidence helper in command-dispatch: $h"
+    missing=1
+  fi
+done
+
 if ! grep -Fq "resolve_command_id" scripts/command-dispatch.sh; then
   log "MISSING registry-driven command resolution in command-dispatch.sh"
   missing=1
@@ -165,6 +179,23 @@ required_artifacts=(
 for f in "${required_artifacts[@]}"; do
   if [ ! -f "$f" ]; then
     log "MISSING required framework artifact: $f"
+    missing=1
+  fi
+done
+
+required_method_markers=(
+  "shared/conventions.md:Stack-Aware Development Method"
+  "templates/implementation-plan.template.md:Stack-Aware Engineering Method"
+  "templates/ticket.template.md:TDD Plan"
+  "templates/test-strategy.template.md:Stack-Aware TDD/DDD Strategy"
+  "templates/review-report.template.md:TDD/DDD Compliance Checks"
+)
+
+for marker in "${required_method_markers[@]}"; do
+  file="${marker%%:*}"
+  pattern="${marker#*:}"
+  if ! grep -Fq "$pattern" "$file"; then
+    log "MISSING method marker '$pattern' in $file"
     missing=1
   fi
 done

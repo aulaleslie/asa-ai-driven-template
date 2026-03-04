@@ -21,7 +21,7 @@ All workflow commands are executed through a single entry point:
 | preflight | `preflight` | any | Project exists | Print exact gate/artifact blockers for current stage progression | Missing project state |
 | advance_stage | `advance stage` | any | Current stage has explicit approval record | Transition to next stage from state machine, update stage context, log command | Current stage not approved, transition blocked by gate checks |
 | approve_brd | `approve BRD` | analysis | BRD exists | Append approval log entry, add BRD to approved artifacts, log command | BRD missing |
-| approve_stage | `approve stage <intake|discovery|analysis|architecture|design|planning|delivery|quality|release>` | any | Target stage matches `current_stage`; quality/release extra guards pass | Append stage approval to approvals log, mark stage approved in state, log command | Stage mismatch, missing quality/release prerequisites |
+| approve_stage | `approve stage <intake|discovery|analysis|architecture|design|planning|delivery|quality|release>` | any | Target stage matches `current_stage`; quality/release extra guards pass; delivery/quality require stack-aware TDD/domain evidence | Append stage approval to approvals log, mark stage approved in state, log command | Stage mismatch, missing quality/release prerequisites, missing TDD/domain evidence |
 | reject_architecture | `reject Architecture with notes: <text>` | architecture | Architecture doc exists; notes non-empty | Append rejection entry to approvals, set status context, log command | Missing notes, architecture doc missing |
 | prepare_manual_test | `prepare manual test` | quality | Acceptance test cases exist | Generate `08-quality/Manual_Test_Script.md`, set `manual_test_gate_status=prepared`, log command | Missing acceptance test cases, wrong stage |
 | start_manual_test | `start manual test` | quality | `manual_test_gate_status=prepared` | Set `manual_test_gate_status=in_progress`, log command | Manual test not prepared, wrong stage |
@@ -53,6 +53,7 @@ All workflow commands are executed through a single entry point:
 7. Scaffolding commands operate only inside the current repository and never create a new repository.
 8. Command phrase matching and required-stage enforcement are sourced from `workflow/command-registry.yaml`.
 9. `intake_start` is one-time project creation. Additional human requests must use `start next phase: <goal>` instead of creating a second project.
+10. Delivery and quality stage approvals require stack-aware TDD/domain-method evidence.
 
 ## Minimal Gate Flow
 

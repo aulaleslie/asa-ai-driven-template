@@ -24,6 +24,17 @@
 
 ## Components
 
+## Stack-Aware Development Method
+
+- Default method: TDD + DDD
+- Selected stack adaptation:
+- Equivalent method approval reference (if used):
+
+## Domain Model and Boundaries
+
+- Bounded contexts:
+- Domain objects/rules:
+
 ## Integrations
 
 ## Deployment Impact (compose)

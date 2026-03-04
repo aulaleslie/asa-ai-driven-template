@@ -57,21 +57,21 @@ This framework runs as a command-driven, document-first state machine.
 ## 6. Planning
 
 - Intent: create executable epics/tickets and dependency order.
-- Outputs: delivery sequence, epics, tickets, execution plan (no required calendar timeline).
+- Outputs: delivery sequence, epics, tickets, execution plan, and stack-aware development method (TDD + DDD by default).
 - Gate: human delivery plan approval.
 - Next role: Software Developer.
 
 ## 7. Delivery
 
 - Intent: execute tickets with explicit handoff packets and code-first progress on the active ticket.
-- Outputs: ticket artifacts, implementation plan, review report.
+- Outputs: ticket artifacts, implementation plan, review report, and TDD/domain-model evidence.
 - Gate: human acceptance of delivery evidence.
 - Next role: SDET.
 
 ## 8. Quality
 
 - Intent: validate acceptance and deployability contract.
-- Outputs: test strategy, acceptance cases, QA report, manual test runbook/execution/issues, deployability validation evidence.
+- Outputs: test strategy, acceptance cases, QA report, manual test runbook/execution/issues, deployability validation evidence, and TDD/DDD compliance evidence for selected stack.
 - Gate: human quality approval only after manual-test gate approval and zero open manual-test issues.
 - Next role: Project Manager.
 

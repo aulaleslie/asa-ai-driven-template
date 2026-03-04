@@ -14,6 +14,7 @@
 - [ ] Deployment impact section is completed when applicable.
 - [ ] State-changing actions are reflected in command log.
 - [ ] Phase register is updated when closing release or starting next phase.
+- [ ] Delivery/quality artifacts contain stack-aware TDD/domain-method evidence.
 
 ## 3. Handoff Checklist
 

@@ -33,6 +33,16 @@ Group related outcomes into a delivery unit aligned with delivery-sequence goals
 - Services/components expected:
 - Deployment dependencies:
 
+## Stack-Aware Delivery Method
+
+- Default method: TDD + DDD
+- Epic-specific method tailoring for selected stack:
+
+## Domain Capability Mapping
+
+- Domain capability/capabilities covered:
+- Bounded context ownership:
+
 ## Required Sections
 
 ## 1. Epic ID and Title
@@ -42,6 +52,8 @@ Group related outcomes into a delivery unit aligned with delivery-sequence goals
 ## 5. Acceptance Criteria
 ## 6. Risks
 ## 7. Child Tickets
+## 8. Stack-Aware Delivery Method
+## 9. Domain Capability Mapping
 
 ## Approval Trace
 
@@ -55,3 +67,4 @@ Group related outcomes into a delivery unit aligned with delivery-sequence goals
 - [ ] Ticket decomposition is feasible.
 - [ ] Acceptance criteria are measurable.
 - [ ] Path and deployment impact are documented.
+- [ ] Stack-aware TDD/domain capability expectations are explicit for child tickets.

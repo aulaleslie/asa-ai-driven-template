@@ -11,6 +11,9 @@
 7. Next-stage transition is forbidden until current stage approval record exists.
 8. Use `preflight` before `approve stage` to surface missing artifacts and blockers.
 9. `start next phase: <goal>` is allowed only after release stage approval in the current phase.
+10. Delivery and quality approvals require stack-aware engineering method evidence:
+    - TDD + DDD by default.
+    - Or an explicitly approved stack-suited equivalent documented in architecture/test strategy.
 
 ## Separation of Duties
 

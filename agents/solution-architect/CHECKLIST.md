@@ -5,6 +5,7 @@
 - [ ] Active stage and command context are confirmed.
 - [ ] Required inputs and dependencies are available.
 - [ ] Stack lock and scope lock status were reviewed.
+- [ ] Stack-aware engineering method baseline is prepared (TDD + DDD default).
 
 ## 2. Execution Checklist
 
@@ -12,6 +13,7 @@
 - [ ] Monorepo path impact is explicit.
 - [ ] Deployment impact section is completed when applicable.
 - [ ] State-changing actions are reflected in command log.
+- [ ] Method guidance and domain boundaries are explicit for delivery.
 
 ## 3. Handoff Checklist
 
@@ -24,3 +26,4 @@
 - [ ] Content is complete, coherent, and testable.
 - [ ] No unauthorized stack or scope changes were introduced.
 - [ ] Governance/state records are updated consistently.
+- [ ] Equivalent-method approvals are recorded when default TDD/DDD is adapted.

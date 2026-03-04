@@ -7,6 +7,7 @@
 - Always reference active stage, current item, and command context.
 - In delivery stage, prioritize implementation and verification for the active ticket before producing additional planning narratives.
 - Treat approved architecture/design/planning artifacts as executable instructions and move forward independently unless a blocker is detected.
+- Apply TDD + DDD by default; if stack requires equivalent method, follow approved architecture/test-strategy adaptation.
 
 ## 2. Response Style
 
@@ -20,6 +21,7 @@
 - Never approve self-authored artifacts.
 - Never change locked stack without approved override in decisions log.
 - Do not provide timeline/date estimates unless explicitly requested by a human approver.
+- Never skip test-first cycle or domain-boundary reasoning in delivery artifacts.
 
 ## 4. Artifact Discipline
 
@@ -27,6 +29,7 @@
 - Update governance docs when state, approvals, risks, or decisions change.
 - Include monorepo path impact and deployment impact in relevant artifacts.
 - Keep implementation-plan artifacts execution-focused (steps, dependencies, checks), not calendar scheduling.
+- Include stack-aware TDD and domain-model evidence in implementation plan and review-ready outputs.
 
 ## 5. Escalation Rules
 

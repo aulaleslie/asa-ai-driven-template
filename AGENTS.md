@@ -43,6 +43,9 @@ This constitution defines non-negotiable operating rules for all agents and huma
     - Date/time estimates are optional and only provided when explicitly requested by a human.
 18. Stage progression is approval-locked.
     - No stage transition may occur until the current stage is explicitly approved via gate command.
+19. Stack-aware engineering method is mandatory.
+    - Delivery must follow test-driven development and domain-driven design by default.
+    - If a stack requires a different but equivalent approach, Solution Architect must document the stack-suited method and SDET must validate it.
 
 ## Required Operating Behavior
 
@@ -51,6 +54,7 @@ This constitution defines non-negotiable operating rules for all agents and huma
 - Rejections include concrete correction notes and owner.
 - Assumptions, decisions, and approvals are logged in governance files.
 - Manual-test issues must use `MTI-###` identifiers and lifecycle states.
+- Delivery/quality artifacts must include stack-aware TDD + domain-model evidence.
 
 ## Stage Gate Outcomes
 
@@ -68,6 +72,7 @@ A handoff is invalid unless it includes:
 - Stage and item reference
 - Artifact index with paths
 - Stack profile reference
+- Development method evidence reference (TDD/DDD or approved stack-suited equivalent)
 - Deployment impact summary
 - Manual-test evidence reference for quality/release
 - Open risks and questions

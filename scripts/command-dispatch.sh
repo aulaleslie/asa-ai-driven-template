@@ -776,6 +776,47 @@ workflow_required_artifacts_for_stage() {
   ' workflow/workflow.yaml
 }
 
+has_method_evidence_in_file() {
+  local file="$1"
+  [ -f "$file" ] || return 1
+  grep -Eiq 'tdd|test[- ]driven' "$file" || return 1
+  grep -Eiq 'ddd|domain[- ]driven|domain model|bounded context|ubiquitous language' "$file" || return 1
+  return 0
+}
+
+has_architecture_method_evidence() {
+  local project_path="$1"
+  has_method_evidence_in_file "$project_path/04-architecture/Architecture.md"
+}
+
+has_delivery_method_evidence() {
+  local project_path="$1"
+  local found_plan=false
+  local found_review=false
+  local file
+
+  while IFS= read -r -d '' file; do
+    if has_method_evidence_in_file "$file"; then
+      found_plan=true
+      break
+    fi
+  done < <(find "$project_path/07-delivery" -type f -name 'implementation-plan.md' -print0 2>/dev/null || true)
+
+  while IFS= read -r -d '' file; do
+    if has_method_evidence_in_file "$file"; then
+      found_review=true
+      break
+    fi
+  done < <(find "$project_path/07-delivery" -type f -name 'review-report.md' -print0 2>/dev/null || true)
+
+  [ "$found_plan" = true ] && [ "$found_review" = true ]
+}
+
+has_quality_method_evidence() {
+  local project_path="$1"
+  has_method_evidence_in_file "$project_path/08-quality/Test_Strategy.md"
+}
+
 handle_intake_start() {
   local cmd="$1"
   local actor="$2"
@@ -1179,6 +1220,28 @@ handle_preflight() {
     fi
   fi
 
+  if [ "$current_stage" = "delivery" ]; then
+    if ! has_architecture_method_evidence "$project_path"; then
+      log "BLOCKER: delivery requires stack-aware method evidence in 04-architecture/Architecture.md (TDD + domain guidance)"
+      blockers=$((blockers + 1))
+    fi
+    if ! has_delivery_method_evidence "$project_path"; then
+      log "BLOCKER: delivery requires TDD/domain evidence in implementation-plan.md and review-report.md under 07-delivery/"
+      blockers=$((blockers + 1))
+    fi
+  fi
+
+  if [ "$current_stage" = "quality" ]; then
+    if ! has_delivery_method_evidence "$project_path"; then
+      log "BLOCKER: quality requires prior delivery TDD/domain evidence in 07-delivery artifacts"
+      blockers=$((blockers + 1))
+    fi
+    if ! has_quality_method_evidence "$project_path"; then
+      log "BLOCKER: quality requires stack-aware TDD/domain strategy evidence in 08-quality/Test_Strategy.md"
+      blockers=$((blockers + 1))
+    fi
+  fi
+
   if [ "$blockers" -eq 0 ]; then
     log "Preflight result: ready for stage approval/advance."
     return 0
@@ -1234,11 +1297,18 @@ handle_approve_stage() {
     [ -s "$artifact" ] || die "stage approval requires artifact present and non-empty: $artifact"
   done
 
+  if [ "$stage" = "delivery" ]; then
+    has_architecture_method_evidence "$project_path" || die "delivery stage approval requires stack-aware method evidence in 04-architecture/Architecture.md (TDD + domain guidance)"
+    has_delivery_method_evidence "$project_path" || die "delivery stage approval requires TDD/domain evidence in implementation-plan.md and review-report.md under 07-delivery/"
+  fi
+
   if [ "$stage" = "quality" ]; then
     gate_status="$(state_value manual_test_gate_status "$state_file")"
     open_issues="$(state_value open_manual_issues "$state_file")"
     [ "$gate_status" = "approved" ] || die "quality stage requires manual_test_gate_status=approved before stage approval (current: $gate_status)"
     [ "$open_issues" = "0" ] || die "quality stage approval blocked while open_manual_issues > 0"
+    has_delivery_method_evidence "$project_path" || die "quality stage approval requires prior delivery TDD/domain evidence in 07-delivery artifacts"
+    has_quality_method_evidence "$project_path" || die "quality stage approval requires stack-aware TDD/domain strategy evidence in 08-quality/Test_Strategy.md"
   fi
 
   if [ "$stage" = "release" ]; then

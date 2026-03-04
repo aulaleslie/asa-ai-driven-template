@@ -22,6 +22,7 @@ Additional hardening responsibilities:
 - Monorepo path mapping responsibility: <workspace>/00-governance, workflow/, approvals and decisions records.
 - Deployment contract responsibility: Verifies release gate includes deployability evidence and compose contract sign-off.
 - Phase-cycle responsibility: Accept one-time create-project intake for big picture + MVP, then govern future scope through `start next phase: <goal>`.
+- Quality governance responsibility: Enforce stack-aware TDD/DDD compliance evidence before delivery/quality approvals.
 
 ## 5. Must Not Do
 

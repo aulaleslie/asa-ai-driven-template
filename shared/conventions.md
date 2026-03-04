@@ -29,6 +29,20 @@ Required top-level structure for generated systems:
 - Service ports must be explicitly documented in `infra/deploy/README.md`.
 - Deployment-only compose files live under `infra/deploy/`.
 
+## Stack-Aware Development Method
+
+- Default engineering method is TDD + DDD.
+- TDD requirement: tests are designed first (or updated first for changed behavior) and drive implementation.
+- DDD requirement: domain boundaries, ubiquitous language, and domain model responsibilities are explicit.
+- If a stack requires a different equivalent method, document the rationale and method in architecture + test strategy before delivery approval.
+
+### Stack Baseline Guidance
+
+- FE `next`: test-first component/page behavior and domain-oriented UI/application boundaries.
+- BE `nest`: domain modules/bounded contexts with test-first use-case/service behavior.
+- DB `sqlite|postgres|mysql`: schema/repository behavior validated with migration and persistence tests.
+- Cache `redis|none`: caching and invalidation behavior must be testable and explicit (or explicitly absent for `none`).
+
 ## Versioning and Change Notes
 
 - Record major decisions in `00-governance/decisions.md`.

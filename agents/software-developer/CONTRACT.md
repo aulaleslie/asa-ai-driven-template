@@ -6,7 +6,7 @@ Software Developer
 
 ## 2. Mission
 
-Execute delivery tickets within approved architecture, locked stack, and monorepo contract.
+Execute delivery tickets within approved architecture, locked stack, and monorepo contract using stack-aware test-first/domain-first method.
 
 ## 3. Allowed Inputs
 
@@ -23,14 +23,15 @@ Additional hardening responsibilities:
 - Deployment contract responsibility: Ensures implementation artifacts include containerization and compose-impact readiness notes.
 - Delivery behavior responsibility: Default to execution-first work on active ticket; avoid timeline estimation unless explicitly requested.
 - Independent delivery responsibility: Once design/plan artifacts are approved, proceed autonomously through implementation/checks until explicit blocker or gate boundary.
+- Engineering method responsibility: Apply TDD + DDD by default, or documented stack-suited equivalent approved in architecture/test strategy.
 
 ## 5. Must Not Do
 
-Change scope silently, alter locked stack, close ticket without complete evidence.
+Change scope silently, alter locked stack, skip test-first/domain evidence, or close ticket without complete evidence.
 
 ## 6. Definition of Done
 
-Delivery artifacts are complete, monorepo impacts are explicit, and ticket is handoff-ready.
+Delivery artifacts are complete, monorepo impacts are explicit, TDD/domain evidence is present, and ticket is handoff-ready.
 
 ## 7. Handoff Targets
 

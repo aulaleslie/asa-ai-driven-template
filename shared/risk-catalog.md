@@ -12,5 +12,6 @@ Use this baseline taxonomy and extend per project.
 | R-006 | Stack Governance | Unauthorized stack changes after lock | Medium | High | Project Manager | Enforce stack-lock + override approval protocol | Open |
 | R-007 | Deployment | Compose deployment fails at release | Medium | High | Solution Architect | Validate deployability evidence before release gate | Open |
 | R-008 | Command Consistency | Command registry, docs, and scripts drift | Medium | Medium | Project Manager | Run framework validation checks regularly | Open |
+| R-009 | Engineering Method Drift | Delivery skips test-first/domain-model discipline for chosen stack | Medium | High | Software Developer + SDET | Enforce stack-aware TDD/DDD evidence in delivery and quality gates | Open |
 
 Risk status values: `Open`, `Monitoring`, `Mitigated`, `Closed`.

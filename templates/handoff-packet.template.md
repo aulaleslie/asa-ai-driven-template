@@ -19,6 +19,11 @@ Standardize explicit handoff communication between roles.
 
 - Stack lock file:
 
+## Development Method Evidence Reference
+
+- TDD/DDD evidence artifacts:
+- Stack-suited equivalent approval reference (if applicable):
+
 ## Monorepo Path Impact
 
 | Path | Impact Type | Notes |
@@ -61,6 +66,7 @@ Standardize explicit handoff communication between roles.
 
 - [ ] Artifact paths are valid.
 - [ ] Stack and deployment impact are included.
+- [ ] Development method evidence references are included.
 - [ ] Requested action is unambiguous.
 
 ## Acknowledgment

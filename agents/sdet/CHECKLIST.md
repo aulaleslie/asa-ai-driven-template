@@ -5,6 +5,7 @@
 - [ ] Active stage and command context are confirmed.
 - [ ] Required inputs and dependencies are available.
 - [ ] Stack lock and scope lock status were reviewed.
+- [ ] Expected engineering method is identified (TDD + DDD default or approved equivalent).
 
 ## 2. Execution Checklist
 
@@ -12,6 +13,7 @@
 - [ ] Monorepo path impact is explicit.
 - [ ] Deployment impact section is completed when applicable.
 - [ ] State-changing actions are reflected in command log.
+- [ ] TDD/domain-method verification evidence is captured in quality artifacts.
 
 ## 3. Handoff Checklist
 
@@ -24,3 +26,4 @@
 - [ ] Content is complete, coherent, and testable.
 - [ ] No unauthorized stack or scope changes were introduced.
 - [ ] Governance/state records are updated consistently.
+- [ ] Quality gate recommendation includes explicit method-compliance decision.

@@ -11,6 +11,13 @@
 
 ## Test Levels
 
+## Stack-Aware TDD/DDD Strategy
+
+- Default method: TDD + DDD
+- Selected stack adaptation:
+- Domain-model verification approach:
+- Equivalent method approval reference (if used):
+
 ## Deployability Validation Scope
 
 - Compose command validation:

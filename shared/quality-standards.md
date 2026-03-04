@@ -13,6 +13,8 @@
 - Implementation aligns with architecture and design constraints.
 - Test strategy covers happy path, edge cases, and regressions.
 - Critical risks have owners and mitigation plans.
+- Delivery follows stack-aware test-first method (TDD by default).
+- Domain boundaries and domain-model responsibilities are explicit and reviewable.
 
 ## Deployment Quality Contract
 
@@ -26,3 +28,4 @@
 - Reviews prioritize defects, risks, and missing evidence.
 - Approvals require explicit rationale.
 - Rejections include concrete correction instructions.
+- Quality reviews explicitly check TDD/DDD evidence (or approved stack-suited equivalent).

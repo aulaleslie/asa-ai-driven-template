@@ -28,6 +28,9 @@ The framework enforces explicit handoffs, mandatory human approvals, stack lock 
    - `docker compose up --build -d`
 7. Scaffolding is always in-place in the current repository (no new repository creation).
 8. Planning is execution-sequencing only; timeline/date estimation is not required unless a human explicitly asks.
+9. Development is stack-aware test-first:
+   - Use TDD + DDD by default.
+   - If a selected stack needs a different equivalent approach, document and approve the stack-suited method before delivery.
 
 ## Repository Layout
 

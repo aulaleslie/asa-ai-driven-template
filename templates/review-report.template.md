@@ -33,6 +33,13 @@ Record structured review findings, severity, and disposition.
 - Deployment-affecting findings:
 - Compose contract status:
 
+## TDD/DDD Compliance Checks
+
+- Stack-aware method expected:
+- TDD evidence reviewed:
+- Domain-model evidence reviewed:
+- Equivalent method approval reference (if applicable):
+
 ## Manual Test Gate Strategy
 
 - Manual-test gate checkpoint covered:
@@ -51,10 +58,11 @@ Record structured review findings, severity, and disposition.
 ## Required Sections
 
 ## 1. Review Scope
-## 2. Findings by Severity
-## 3. Risks and Regressions
-## 4. Required Corrections
-## 5. Final Recommendation
+## 2. TDD/DDD Compliance Checks
+## 3. Findings by Severity
+## 4. Risks and Regressions
+## 5. Required Corrections
+## 6. Final Recommendation
 
 ## Findings Table
 
@@ -75,6 +83,7 @@ Record structured review findings, severity, and disposition.
 - [ ] Open items have owners.
 - [ ] Deployment-impact findings are explicit.
 - [ ] Manual-test issue linkage is explicit.
+- [ ] TDD/domain compliance status is explicit.
 
 ## Sign-Off
 

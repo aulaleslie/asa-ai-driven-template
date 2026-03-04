@@ -35,6 +35,13 @@ Define quality approach, test levels, manual gate execution, and coverage priori
 - Compose validation approach:
 - Health and readiness checks:
 
+## Stack-Aware TDD/DDD Strategy
+
+- Default method: TDD + DDD
+- Stack-specific test-first adaptations:
+- Domain-model verification strategy:
+- If equivalent alternative is used, approval reference:
+
 ## Manual Test Gate Strategy
 
 - Runbook generation approach:
@@ -57,12 +64,13 @@ Define quality approach, test levels, manual gate execution, and coverage priori
 ## Required Sections
 
 ## 1. Quality Objectives
-## 2. Scope of Testing
-## 3. Out of Scope
-## 4. Test Levels and Methods
-## 5. Environment and Data Strategy
-## 6. Defect Management Approach
-## 7. Exit Criteria
+## 2. Stack-Aware TDD/DDD Strategy
+## 3. Scope of Testing
+## 4. Out of Scope
+## 5. Test Levels and Methods
+## 6. Environment and Data Strategy
+## 7. Defect Management Approach
+## 8. Exit Criteria
 
 ## Approval Trace
 
@@ -77,6 +85,7 @@ Define quality approach, test levels, manual gate execution, and coverage priori
 - [ ] Exit criteria are measurable.
 - [ ] Deployability test coverage is explicit.
 - [ ] Manual-test gate strategy and evidence flow are explicit.
+- [ ] Stack-aware TDD/domain verification strategy is explicit.
 
 ## Sign-Off
 

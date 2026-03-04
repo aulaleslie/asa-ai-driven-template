@@ -16,6 +16,12 @@ Every generated project is expected to follow:
 - Solution Architect, SDET, and Project Manager govern `infra/deploy` release readiness.
 - Shared contracts in `packages/` require architecture traceability.
 
+## Engineering Method Baseline
+
+- Delivery uses stack-aware TDD + DDD by default across `apps/` and `services/`.
+- If selected stack requires an equivalent method, it must be documented in architecture and test strategy with approval reference.
+- SDET verifies method compliance evidence before quality/release approvals.
+
 ## Deployment Contract
 
 Deployment artifacts must be under `infra/deploy/` and include:
