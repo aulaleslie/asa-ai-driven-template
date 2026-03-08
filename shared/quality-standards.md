@@ -18,7 +18,7 @@
 
 ## Deployment Quality Contract
 
-- Compose manifest exists at `infra/deploy/docker-compose.yml`.
+- Compose manifest exists at `project/infra/deploy/docker-compose.yml`.
 - `docker compose up --build -d` evidence is documented for release.
 - Services define explicit ports and environment contract references.
 - Container health assumptions and checks are documented.

@@ -13,11 +13,13 @@ Single-project mode:
 
 Examples:
   $(basename "$0") --command "to project manager: I want to build gym erp | fe=next | be=nest | db=sqlite | cache=redis" --actor human-owner
+  $(basename "$0") --command "set phase plan: inventory optimization; analytics dashboard" --actor project-manager
   $(basename "$0") --command "preflight" --actor project-manager
   $(basename "$0") --command "approve stage intake" --actor sponsor
   $(basename "$0") --command "lock scope" --actor project-manager
   $(basename "$0") --command "execute current ticket" --actor software-developer
   $(basename "$0") --command "prepare manual test" --actor sdet
+  $(basename "$0") --command "execute phase 2" --actor human-owner
   $(basename "$0") --command "start next phase: advanced analytics" --actor human-owner
 USAGE
 }
@@ -29,6 +31,13 @@ log() {
 die() {
   log "ERROR: $1"
   exit "${2:-1}"
+}
+
+sanitize_table_cell() {
+  local value="${1:-}"
+  value="$(printf '%s' "$value" | tr '\n' ' ' | sed -E 's/[[:space:]]+/ /g; s/^[[:space:]]+|[[:space:]]+$//g')"
+  value="${value//|/&#124;}"
+  printf '%s' "$value"
 }
 
 slugify() {
@@ -105,7 +114,14 @@ append_command_log() {
   local command="$3"
   local result="$4"
   local notes="$5"
+  local actor_cell command_cell result_cell notes_cell
   local log_file="$project_path/00-governance/command-log.md"
+
+  actor_cell="$(sanitize_table_cell "$actor")"
+  command_cell="$(sanitize_table_cell "$command")"
+  result_cell="$(sanitize_table_cell "$result")"
+  notes_cell="$(sanitize_table_cell "$notes")"
+
   [ -f "$log_file" ] || {
     cat > "$log_file" <<LOG
 # Command Log
@@ -114,7 +130,7 @@ append_command_log() {
 | --- | --- | --- | --- | --- |
 LOG
   }
-  echo "| $(date -u +%Y-%m-%dT%H:%M:%SZ) | $actor | $command | $result | $notes |" >> "$log_file"
+  echo "| $(date -u +%Y-%m-%dT%H:%M:%SZ) | $actor_cell | $command_cell | $result_cell | $notes_cell |" >> "$log_file"
 }
 
 require_project_state() {
@@ -138,6 +154,7 @@ append_approval_entry() {
   local decision="$4"
   local decision_maker="$5"
   local notes="$6"
+  local stage_cell artifacts_cell decision_cell decision_maker_cell notes_cell
   local approvals="$project_path/00-governance/approvals.md"
   local state_file="$project_path/00-governance/project-state.yaml"
   local phase_label notes_with_phase
@@ -161,7 +178,13 @@ APP
     notes_with_phase="phase:$phase_label"
   fi
 
-  echo "| $(date -u +%Y-%m-%d) | $stage | $artifacts | $decision | $decision_maker | $notes_with_phase |" >> "$approvals"
+  stage_cell="$(sanitize_table_cell "$stage")"
+  artifacts_cell="$(sanitize_table_cell "$artifacts")"
+  decision_cell="$(sanitize_table_cell "$decision")"
+  decision_maker_cell="$(sanitize_table_cell "$decision_maker")"
+  notes_cell="$(sanitize_table_cell "$notes_with_phase")"
+
+  echo "| $(date -u +%Y-%m-%d) | $stage_cell | $artifacts_cell | $decision_cell | $decision_maker_cell | $notes_cell |" >> "$approvals"
 }
 
 reset_approvals_log() {
@@ -277,10 +300,20 @@ append_phase_row() {
   local started_at="$6"
   local closed_at="$7"
   local notes="$8"
+  local phase_cell goal_cell status_cell requested_by_cell started_at_cell closed_at_cell notes_cell
   local phase_file
   phase_file="$(phase_register_file "$project_path")"
   ensure_phase_register "$project_path"
-  echo "| $phase | $goal | $status | $requested_by | $started_at | $closed_at | $notes |" >> "$phase_file"
+
+  phase_cell="$(sanitize_table_cell "$phase")"
+  goal_cell="$(sanitize_table_cell "$goal")"
+  status_cell="$(sanitize_table_cell "$status")"
+  requested_by_cell="$(sanitize_table_cell "$requested_by")"
+  started_at_cell="$(sanitize_table_cell "$started_at")"
+  closed_at_cell="$(sanitize_table_cell "$closed_at")"
+  notes_cell="$(sanitize_table_cell "$notes")"
+
+  echo "| $phase_cell | $goal_cell | $status_cell | $requested_by_cell | $started_at_cell | $closed_at_cell | $notes_cell |" >> "$phase_file"
 }
 
 close_active_phase_row() {
@@ -296,6 +329,7 @@ close_active_phase_row() {
 
   if awk -F'|' -v phase="$phase" -v notes="$notes" -v closed_at="$closed_at" '
     function trim(s){ gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+    function cell(s){ gsub(/\|/, "&#124;", s); gsub(/[[:space:]]+/, " ", s); gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
     {
       if ($0 !~ /^\|/) {
         print $0
@@ -317,7 +351,7 @@ close_active_phase_row() {
         if (existing_notes != "" && existing_notes != "-") {
           merged_notes=existing_notes "; " notes
         }
-        printf "| %s | %s | completed | %s | %s | %s | %s |\n", p, goal, requested_by, started_at, closed_at, merged_notes
+        printf "| %s | %s | completed | %s | %s | %s | %s |\n", cell(p), cell(goal), cell(requested_by), cell(started_at), cell(closed_at), cell(merged_notes)
         updated=1
         next
       }
@@ -333,6 +367,258 @@ close_active_phase_row() {
   rm -f "$tmp_file"
   append_phase_row "$project_path" "$phase" "$goal" "completed" "system" "unknown" "$closed_at" "$notes"
   log "Phase row for $phase was missing; appended completed fallback row."
+}
+
+phase_row_exists() {
+  local project_path="$1"
+  local phase="$2"
+  local phase_file
+  phase_file="$(phase_register_file "$project_path")"
+  [ -f "$phase_file" ] || return 1
+  grep -Eq "^\|[[:space:]]*${phase}[[:space:]]*\|" "$phase_file"
+}
+
+phase_goal_from_register() {
+  local project_path="$1"
+  local phase="$2"
+  local phase_file
+  phase_file="$(phase_register_file "$project_path")"
+  [ -f "$phase_file" ] || return 1
+
+  awk -F'|' -v target="$phase" '
+    function trim(s){ gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+    /^\|/ {
+      p=trim($2)
+      if (p==target) {
+        print trim($3)
+        exit
+      }
+    }
+  ' "$phase_file"
+}
+
+phase_status_from_register() {
+  local project_path="$1"
+  local phase="$2"
+  local phase_file
+  phase_file="$(phase_register_file "$project_path")"
+  [ -f "$phase_file" ] || return 1
+
+  awk -F'|' -v target="$phase" '
+    function trim(s){ gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+    /^\|/ {
+      p=trim($2)
+      if (p==target) {
+        print trim($4)
+        exit
+      }
+    }
+  ' "$phase_file"
+}
+
+activate_planned_phase_row() {
+  local project_path="$1"
+  local phase="$2"
+  local goal="$3"
+  local actor="$4"
+  local started_at="$5"
+  local notes="$6"
+  local phase_file tmp_file
+
+  phase_file="$(phase_register_file "$project_path")"
+  [ -f "$phase_file" ] || return 1
+  tmp_file="${phase_file}.tmp"
+
+  if awk -F'|' -v target_phase="$phase" -v new_goal="$goal" -v actor="$actor" -v started_at="$started_at" -v notes="$notes" '
+    function trim(s){ gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+    function cell(s){ gsub(/\|/, "&#124;", s); gsub(/[[:space:]]+/, " ", s); gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+    {
+      if ($0 !~ /^\|/) {
+        print $0
+        next
+      }
+
+      phase=trim($2)
+      if (phase=="Phase" || phase=="---" || phase=="") {
+        print $0
+        next
+      }
+
+      if (phase==target_phase) {
+        status=trim($4)
+        if (status=="planned") {
+          goal=trim($3)
+          requested_by=trim($5)
+          existing_notes=trim($8)
+
+          final_goal=goal
+          if (new_goal != "") final_goal=new_goal
+
+          final_requested=requested_by
+          if (actor != "") final_requested=actor
+
+          final_notes=notes
+          if (existing_notes != "" && existing_notes != "-") {
+            if (final_notes != "") {
+              final_notes=existing_notes "; " final_notes
+            } else {
+              final_notes=existing_notes
+            }
+          }
+
+          printf "| %s | %s | active | %s | %s |  | %s |\n", cell(phase), cell(final_goal), cell(final_requested), cell(started_at), cell(final_notes)
+          updated=1
+          next
+        }
+        conflict=1
+      }
+
+      print $0
+    }
+    END {
+      if (conflict) exit 6
+      if (!updated) exit 4
+    }
+  ' "$phase_file" > "$tmp_file"; then
+    mv "$tmp_file" "$phase_file"
+    return 0
+  fi
+
+  code="$?"
+  rm -f "$tmp_file"
+  if [ "$code" -eq 6 ]; then
+    return 2
+  fi
+  return 1
+}
+
+sync_phase_zero_plan() {
+  local project_path="$1"
+  local actor="$2"
+  local cmd="$3"
+  local phase_file plan_file now
+
+  phase_file="$(phase_register_file "$project_path")"
+  plan_file="$project_path/01-intake/Phase_0_Plan.md"
+  now="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+  [ -f "$phase_file" ] || return 0
+
+  {
+    echo "# Phase 0 Plan"
+    echo
+    echo "## Conversation Context"
+    echo
+    echo "- Last update command: $cmd"
+    echo "- Updated by: $actor"
+    echo "- Updated at (UTC): $now"
+    echo
+    echo "## Phase Roadmap"
+    echo
+    echo "| Phase | Goal | Status | Requested By |"
+    echo "| --- | --- | --- | --- |"
+    awk -F'|' '
+      function trim(s){ gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+      /^\|/ {
+        phase=trim($2)
+        if (phase=="Phase" || phase=="---" || phase=="") next
+        goal=trim($3)
+        status=trim($4)
+        requested_by=trim($5)
+        printf "| %s | %s | %s | %s |\n", phase, goal, status, requested_by
+      }
+    ' "$phase_file"
+    echo
+    echo "## Human Interaction Rule"
+    echo
+    echo "- AI asks clarifying questions during phase 0 until stack and roadmap are explicit."
+    echo "- Human can trigger roadmap progression with: \`execute phase <n>\` (or \`proceed phase <n>\`)."
+  } > "$plan_file"
+}
+
+transition_to_next_phase() {
+  local project_path="$1"
+  local actor="$2"
+  local cmd="$3"
+  local phase_goal="$4"
+  local expected_next_index="${5:-}"
+  local state_file previous_phase previous_goal previous_index next_index next_phase
+
+  state_file="$project_path/00-governance/project-state.yaml"
+
+  require_project_state "$project_path"
+  require_stage release "$state_file"
+  has_stage_approval "$project_path" release || die "release stage must be approved before starting next phase"
+
+  phase_goal="$(echo "$phase_goal" | tr '\n' ' ' | sed -E 's/[[:space:]]+/ /g; s/^[[:space:]]+|[[:space:]]+$//g')"
+  phase_goal="${phase_goal//|/-}"
+  [ -n "$phase_goal" ] || die "next phase goal is required"
+
+  previous_phase="$(state_value current_phase "$state_file")"
+  [ -n "$previous_phase" ] || previous_phase="phase-1"
+  previous_goal="$(state_value current_phase_goal "$state_file")"
+  [ -n "$previous_goal" ] || previous_goal="completed phase"
+
+  previous_index="$(state_value phase_index "$state_file")"
+  if [[ ! "$previous_index" =~ ^[0-9]+$ ]]; then
+    previous_index=1
+  fi
+
+  next_index=$((previous_index + 1))
+  next_phase="phase-$next_index"
+
+  if [ -n "$expected_next_index" ] && [ "$next_index" != "$expected_next_index" ]; then
+    die "execute phase target must be sequential. expected phase-$next_index based on current state."
+  fi
+
+  close_active_phase_row \
+    "$project_path" \
+    "$previous_phase" \
+    "$previous_goal" \
+    "completed through release approval" \
+    "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+  archive_and_reset_approvals "$project_path" "$previous_phase"
+
+  if activate_planned_phase_row "$project_path" "$next_phase" "$phase_goal" "$actor" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "started from command: $cmd"; then
+    :
+  else
+    rc="$?"
+    if [ "$rc" -eq 2 ]; then
+      die "phase row '$next_phase' already exists and is not in planned status"
+    fi
+    append_phase_row \
+      "$project_path" \
+      "$next_phase" \
+      "$phase_goal" \
+      "active" \
+      "$actor" \
+      "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+      "" \
+      "started from command: $cmd"
+  fi
+
+  append_phase_request_note "$project_path" "$actor" "$cmd" "$next_phase" "$phase_goal"
+  sync_phase_zero_plan "$project_path" "$actor" "$cmd"
+
+  set_state_value "$state_file" current_stage discovery
+  set_state_value "$state_file" current_item "$next_phase-scope-review"
+  set_state_value "$state_file" status in_progress
+  set_state_value "$state_file" scope_locked false
+  set_state_value "$state_file" approved_artifacts "[]"
+  set_state_value "$state_file" blocked_by "[]"
+  set_state_value "$state_file" active_epic none
+  set_state_value "$state_file" active_ticket none
+  set_state_value "$state_file" deployment_contract pending
+  set_state_value "$state_file" manual_test_gate_status not_started
+  set_state_value "$state_file" manual_test_last_result none
+  set_state_value "$state_file" open_manual_issues 0
+  set_state_value "$state_file" phase_index "$next_index"
+  set_state_value "$state_file" current_phase "$next_phase"
+  set_state_value "$state_file" current_phase_goal "$phase_goal"
+  set_state_value "$state_file" current_phase_status active
+  set_state_value "$state_file" next_actor project-manager
+  set_state_value "$state_file" last_actor "$actor"
 }
 
 append_phase_request_note() {
@@ -559,21 +845,33 @@ update_manual_issue_row() {
   local resolution_notes="$9"
   local retest_result="${10}"
   local updated_at="${11}"
+  local issue_id_cell source_test_id_cell title_cell severity_cell status_cell reported_by_cell owner_cell resolution_notes_cell retest_result_cell updated_at_cell
 
   local tmp_file
   tmp_file="${issues_file}.tmp"
 
+  issue_id_cell="$(sanitize_table_cell "$issue_id")"
+  source_test_id_cell="$(sanitize_table_cell "$source_test_id")"
+  title_cell="$(sanitize_table_cell "$title")"
+  severity_cell="$(sanitize_table_cell "$severity")"
+  status_cell="$(sanitize_table_cell "$status")"
+  reported_by_cell="$(sanitize_table_cell "$reported_by")"
+  owner_cell="$(sanitize_table_cell "$owner")"
+  resolution_notes_cell="$(sanitize_table_cell "$resolution_notes")"
+  retest_result_cell="$(sanitize_table_cell "$retest_result")"
+  updated_at_cell="$(sanitize_table_cell "$updated_at")"
+
   awk -F'|' \
-    -v id="$issue_id" \
-    -v source_test_id="$source_test_id" \
-    -v title="$title" \
-    -v severity="$severity" \
-    -v status="$status" \
-    -v reported_by="$reported_by" \
-    -v owner="$owner" \
-    -v resolution_notes="$resolution_notes" \
-    -v retest_result="$retest_result" \
-    -v updated_at="$updated_at" '
+    -v id="$issue_id_cell" \
+    -v source_test_id="$source_test_id_cell" \
+    -v title="$title_cell" \
+    -v severity="$severity_cell" \
+    -v status="$status_cell" \
+    -v reported_by="$reported_by_cell" \
+    -v owner="$owner_cell" \
+    -v resolution_notes="$resolution_notes_cell" \
+    -v retest_result="$retest_result_cell" \
+    -v updated_at="$updated_at_cell" '
     function trim(s){ gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
     {
       if ($0 !~ /^\|/) {
@@ -635,7 +933,13 @@ append_manual_feedback() {
   local summary="$4"
   local linked_issue_id="$5"
   local notes="$6"
-  echo "| $(date -u +%Y-%m-%dT%H:%M:%SZ) | $actor | $source_test_id | $summary | $linked_issue_id | $notes |" >> "$feedback_file"
+  local actor_cell source_test_id_cell summary_cell linked_issue_id_cell notes_cell
+  actor_cell="$(sanitize_table_cell "$actor")"
+  source_test_id_cell="$(sanitize_table_cell "$source_test_id")"
+  summary_cell="$(sanitize_table_cell "$summary")"
+  linked_issue_id_cell="$(sanitize_table_cell "$linked_issue_id")"
+  notes_cell="$(sanitize_table_cell "$notes")"
+  echo "| $(date -u +%Y-%m-%dT%H:%M:%SZ) | $actor_cell | $source_test_id_cell | $summary_cell | $linked_issue_id_cell | $notes_cell |" >> "$feedback_file"
 }
 
 append_manual_execution() {
@@ -645,7 +949,13 @@ append_manual_execution() {
   local result="$4"
   local linked_issue_id="$5"
   local notes="$6"
-  echo "| $(date -u +%Y-%m-%dT%H:%M:%SZ) | $actor | $test_id | $result | $linked_issue_id | $notes |" >> "$execution_file"
+  local actor_cell test_id_cell result_cell linked_issue_id_cell notes_cell
+  actor_cell="$(sanitize_table_cell "$actor")"
+  test_id_cell="$(sanitize_table_cell "$test_id")"
+  result_cell="$(sanitize_table_cell "$result")"
+  linked_issue_id_cell="$(sanitize_table_cell "$linked_issue_id")"
+  notes_cell="$(sanitize_table_cell "$notes")"
+  echo "| $(date -u +%Y-%m-%dT%H:%M:%SZ) | $actor_cell | $test_id_cell | $result_cell | $linked_issue_id_cell | $notes_cell |" >> "$execution_file"
 }
 
 validate_severity() {
@@ -710,6 +1020,260 @@ resolve_command_id() {
   )
 
   return 1
+}
+
+normalize_phrase() {
+  local phrase="${1:-}"
+  phrase="$(printf '%s' "$phrase" | tr '\n' ' ' | sed -E 's/[[:space:]]+/ /g; s/^[[:space:]]+|[[:space:]]+$//g')"
+  printf '%s' "$phrase"
+}
+
+uppercase_issue_id() {
+  local issue_id="${1:-}"
+  printf '%s' "$issue_id" | tr '[:lower:]' '[:upper:]'
+}
+
+extract_intake_project_name() {
+  local phrase="$1"
+  local name
+
+  name="$(printf '%s' "$phrase" | sed -E 's/.*\b(build|create|make)\b[[:space:]]+//I')"
+  name="$(printf '%s' "$name" | sed -E 's/[|].*$//; s/\bwith\b.*$//I; s/\busing\b.*$//I; s/\b(fe|frontend|front-end|be|backend|back-end|db|database|cache)\b.*$//I')"
+  name="$(printf '%s' "$name" | sed -E 's/^[[:space:]]*project[[:space:]]+//I')"
+  name="$(normalize_phrase "$name")"
+  [ -n "$name" ] || name="new project"
+  printf '%s' "$name"
+}
+
+map_freeform_command() {
+  local phrase="$1"
+  local normalized lowered
+  local stage issue_id notes title severity details phase_num goal action
+  local fe be db cache project_name canonical
+  local epic_num ticket_num
+
+  normalized="$(normalize_phrase "$phrase")"
+  lowered="$(printf '%s' "$normalized" | tr '[:upper:]' '[:lower:]')"
+
+  if [[ "$lowered" =~ (execute|proceed)[[:space:]]+phase[[:space:]]+([0-9]+) ]]; then
+    action="${BASH_REMATCH[1]}"
+    phase_num="${BASH_REMATCH[2]}"
+    echo "execute_phase	${action} phase ${phase_num}"
+    return 0
+  fi
+
+  if [[ "$lowered" =~ set[[:space:]]+phase[[:space:]]+plan:[[:space:]]*(.+)$ ]]; then
+    goal="$(normalize_phrase "${BASH_REMATCH[1]}")"
+    [ -n "$goal" ] || return 1
+    echo "set_phase_plan	set phase plan: $goal"
+    return 0
+  fi
+
+  if [[ "$lowered" =~ start[[:space:]]+next[[:space:]]+phase:[[:space:]]*(.+)$ ]]; then
+    goal="$(normalize_phrase "${BASH_REMATCH[1]}")"
+    [ -n "$goal" ] || return 1
+    echo "start_next_phase	start next phase: $goal"
+    return 0
+  fi
+
+  if [[ "$lowered" =~ (start|begin)[[:space:]]+manual[[:space:]]+test ]]; then
+    echo "start_manual_test	start manual test"
+    return 0
+  fi
+  if [[ "$lowered" =~ (prepare|generate)[[:space:]]+manual[[:space:]]+test ]]; then
+    echo "prepare_manual_test	prepare manual test"
+    return 0
+  fi
+  if [[ "$lowered" =~ approve[[:space:]]+manual[[:space:]]+test[[:space:]]+gate ]]; then
+    echo "approve_manual_test_gate	approve manual test gate"
+    return 0
+  fi
+
+  if [[ "$lowered" =~ submit[[:space:]]+manual[[:space:]]+test[[:space:]]+passed ]] || [[ "$lowered" =~ manual[[:space:]]+test[[:space:]]+passed$ ]]; then
+    echo "submit_manual_test_passed	submit manual test passed"
+    return 0
+  fi
+
+  if [[ "$lowered" =~ submit[[:space:]]+manual[[:space:]]+test[[:space:]]+failed:[[:space:]]*(.+)$ ]]; then
+    title="$(normalize_phrase "${BASH_REMATCH[1]}")"
+    if [[ "$lowered" =~ severity[[:space:]]*=[[:space:]]*(critical|high|medium|low) ]]; then
+      severity="${BASH_REMATCH[1]}"
+    fi
+    if [[ "$normalized" =~ [Dd]etails[[:space:]]*=[[:space:]]*(.+)$ ]]; then
+      details="$(normalize_phrase "${BASH_REMATCH[1]}")"
+    fi
+    [ -n "$severity" ] || severity="medium"
+    [ -n "$details" ] || details="provided via conversational intent"
+    echo "submit_manual_test_failed	submit manual test failed: $title | severity=$severity | details=$details"
+    return 0
+  fi
+
+  if [[ "$lowered" =~ resolve[[:space:]]+manual[[:space:]]+issue[[:space:]]*(mti-[0-9]+) ]]; then
+    issue_id="$(uppercase_issue_id "${BASH_REMATCH[1]}")"
+    notes="$(printf '%s' "$normalized" | sed -E 's/.*notes[[:space:]]*:[[:space:]]*//I')"
+    if [ "$notes" = "$normalized" ]; then
+      notes="resolved via conversational command"
+    fi
+    notes="$(normalize_phrase "$notes")"
+    echo "resolve_manual_issue	resolve manual issue $issue_id with notes: $notes"
+    return 0
+  fi
+
+  if [[ "$lowered" =~ retest[[:space:]]+manual[[:space:]]+issue[[:space:]]*(mti-[0-9]+)[[:space:]]+passed$ ]]; then
+    issue_id="$(uppercase_issue_id "${BASH_REMATCH[1]}")"
+    echo "retest_manual_issue_passed	retest manual issue $issue_id passed"
+    return 0
+  fi
+
+  if [[ "$lowered" =~ retest[[:space:]]+manual[[:space:]]+issue[[:space:]]*(mti-[0-9]+)[[:space:]]+failed:[[:space:]]*(.+)$ ]]; then
+    issue_id="$(uppercase_issue_id "${BASH_REMATCH[1]}")"
+    notes="$(normalize_phrase "${BASH_REMATCH[2]}")"
+    echo "retest_manual_issue_failed	retest manual issue $issue_id failed: $notes"
+    return 0
+  fi
+
+  if [[ "$lowered" =~ reject[[:space:]]+architecture ]]; then
+    notes="$(printf '%s' "$normalized" | sed -E 's/.*notes[[:space:]]*:[[:space:]]*//I')"
+    if [ "$notes" = "$normalized" ]; then
+      notes="$(printf '%s' "$normalized" | sed -E 's/^.*reject[[:space:]]+architecture[[:space:]]*//I')"
+    fi
+    notes="$(normalize_phrase "$notes")"
+    [ -n "$notes" ] || notes="rework required"
+    echo "reject_architecture	reject Architecture with notes: $notes"
+    return 0
+  fi
+
+  if [[ "$lowered" =~ approve[[:space:]]+brd ]] || [[ "$lowered" =~ brd[[:space:]]+approved ]]; then
+    echo "approve_brd	approve BRD"
+    return 0
+  fi
+
+  for stage in intake discovery analysis architecture design planning delivery quality release; do
+    if ([[ "$lowered" =~ approve ]] || [[ "$lowered" =~ approved ]]) && [[ "$lowered" =~ $stage ]]; then
+      echo "approve_stage	approve stage $stage"
+      return 0
+    fi
+  done
+
+  if [[ "$lowered" =~ review[[:space:]]+scope ]] || [[ "$lowered" =~ start[[:space:]]+discovery ]] || [[ "$lowered" =~ begin[[:space:]]+discovery ]]; then
+    echo "review_scope	review scope"
+    return 0
+  fi
+  if [[ "$lowered" =~ lock[[:space:]]+scope ]]; then
+    echo "lock_scope	lock scope"
+    return 0
+  fi
+  if [[ "$lowered" =~ (generate|create)[[:space:]]+epics? ]]; then
+    echo "generate_epics	generate epics"
+    return 0
+  fi
+
+  if [[ "$lowered" =~ epic[-[:space:]]*([0-9]+).*ticket[-[:space:]]*([0-9]+) ]] || [[ "$lowered" =~ ticket[-[:space:]]*([0-9]+).*epic[-[:space:]]*([0-9]+) ]]; then
+    if [[ "$lowered" =~ epic[-[:space:]]*([0-9]+).*ticket[-[:space:]]*([0-9]+) ]]; then
+      epic_num="${BASH_REMATCH[1]}"
+      ticket_num="${BASH_REMATCH[2]}"
+    else
+      ticket_num="${BASH_REMATCH[1]}"
+      epic_num="${BASH_REMATCH[2]}"
+    fi
+    echo "start_ticket	start epic-${epic_num}-ticket-${ticket_num}"
+    return 0
+  fi
+
+  if [[ "$lowered" =~ (start|begin|open|work[[:space:]]+on)[[:space:]]+epic[-[:space:]]*([0-9]+) ]] || [[ "$lowered" =~ (^|[[:space:]])epic[-[:space:]]*([0-9]+)$ ]]; then
+    if [[ "$lowered" =~ (start|begin|open|work[[:space:]]+on)[[:space:]]+epic[-[:space:]]*([0-9]+) ]]; then
+      epic_num="${BASH_REMATCH[2]}"
+    else
+      epic_num="${BASH_REMATCH[2]}"
+    fi
+    echo "start_epic	start epic-${epic_num}"
+    return 0
+  fi
+
+  if [[ "$lowered" =~ (execute|run|work[[:space:]]+on)[[:space:]]+current[[:space:]]+ticket ]]; then
+    echo "execute_ticket	execute current ticket"
+    return 0
+  fi
+  if [[ "$lowered" =~ close[[:space:]]+ticket ]]; then
+    echo "close_ticket	close ticket"
+    return 0
+  fi
+  if [[ "$lowered" =~ advance[[:space:]]+stage ]] || [[ "$lowered" =~ next[[:space:]]+stage ]] || [[ "$lowered" =~ move[[:space:]]+to[[:space:]]+next[[:space:]]+stage ]]; then
+    echo "advance_stage	advance stage"
+    return 0
+  fi
+  if [[ "$lowered" =~ preflight ]] || [[ "$lowered" =~ check[[:space:]]+readiness ]]; then
+    echo "preflight	preflight"
+    return 0
+  fi
+  if [[ "$lowered" =~ show[[:space:]]+blockers ]]; then
+    echo "show_blockers	show blockers"
+    return 0
+  fi
+  if [[ "$lowered" =~ resume[[:space:]]+current[[:space:]]+stage ]] || [[ "$lowered" =~ resume[[:space:]]+stage ]] || [[ "$lowered" =~ show[[:space:]]+status ]] || [[ "$lowered" =~ where[[:space:]]+are[[:space:]]+we ]]; then
+    echo "resume_stage	resume current stage"
+    return 0
+  fi
+
+  if [[ "$lowered" =~ (^|[[:space:]])(build|create|make)([[:space:]]|$) ]]; then
+    if [[ "$lowered" =~ fe[[:space:]]*[:=][[:space:]]*([a-z0-9_-]+) ]]; then
+      fe="${BASH_REMATCH[1]}"
+    elif [[ "$lowered" =~ frontend[[:space:]]*[:=][[:space:]]*([a-z0-9_-]+) ]]; then
+      fe="${BASH_REMATCH[1]}"
+    elif [[ "$lowered" =~ front-end[[:space:]]*[:=][[:space:]]*([a-z0-9_-]+) ]]; then
+      fe="${BASH_REMATCH[1]}"
+    elif [[ "$lowered" =~ (^|[^a-z])next([^a-z]|$) ]]; then
+      fe="next"
+    fi
+
+    if [[ "$lowered" =~ be[[:space:]]*[:=][[:space:]]*([a-z0-9_-]+) ]]; then
+      be="${BASH_REMATCH[1]}"
+    elif [[ "$lowered" =~ backend[[:space:]]*[:=][[:space:]]*([a-z0-9_-]+) ]]; then
+      be="${BASH_REMATCH[1]}"
+    elif [[ "$lowered" =~ back-end[[:space:]]*[:=][[:space:]]*([a-z0-9_-]+) ]]; then
+      be="${BASH_REMATCH[1]}"
+    elif [[ "$lowered" =~ (^|[^a-z])nest([^a-z]|$) ]]; then
+      be="nest"
+    fi
+
+    if [[ "$lowered" =~ db[[:space:]]*[:=][[:space:]]*([a-z0-9_-]+) ]]; then
+      db="${BASH_REMATCH[1]}"
+    elif [[ "$lowered" =~ database[[:space:]]*[:=][[:space:]]*([a-z0-9_-]+) ]]; then
+      db="${BASH_REMATCH[1]}"
+    elif [[ "$lowered" =~ (^|[^a-z])(sqlite|postgres|mysql)([^a-z]|$) ]]; then
+      db="${BASH_REMATCH[2]}"
+    fi
+
+    if [[ "$lowered" =~ cache[[:space:]]*[:=][[:space:]]*([a-z0-9_-]+) ]]; then
+      cache="${BASH_REMATCH[1]}"
+    elif [[ "$lowered" =~ (^|[^a-z])redis([^a-z]|$) ]]; then
+      cache="redis"
+    elif [[ "$lowered" =~ no[[:space:]]+cache|without[[:space:]]+cache|cache[[:space:]]+none ]]; then
+      cache="none"
+    fi
+
+    if [ -n "$fe" ] && [ -n "$be" ] && [ -n "$db" ] && [ -n "$cache" ]; then
+      project_name="$(extract_intake_project_name "$normalized")"
+      canonical="to project manager: I want to build $project_name | fe=$fe | be=$be | db=$db | cache=$cache"
+      echo "intake_start	$canonical"
+      return 0
+    fi
+  fi
+
+  return 1
+}
+
+resolve_command_payload() {
+  local phrase="$1"
+  local command_id
+
+  command_id="$(resolve_command_id "$phrase" || true)"
+  if [ -n "$command_id" ]; then
+    printf '%s\t%s\n' "$command_id" "$phrase"
+    return 0
+  fi
+
+  map_freeform_command "$phrase"
 }
 
 enforce_registry_stage() {
@@ -822,16 +1386,17 @@ handle_intake_start() {
   local actor="$2"
   local provided_project="$3"
 
-  if [[ ! "$cmd" =~ ^to\ project\ manager:\ I\ want\ to\ build\ (.+)\ \|\ fe=([a-z0-9_-]+)\ \|\ be=([a-z0-9_-]+)\ \|\ db=([a-z0-9_-]+)\ \|\ cache=([a-z0-9_-]+)$ ]]; then
+  if [[ ! "$cmd" =~ ^to\ project\ manager:\ I\ want\ to\ build\ (.+)[[:space:]]*\|[[:space:]]*fe=([A-Za-z0-9_-]+)[[:space:]]*\|[[:space:]]*be=([A-Za-z0-9_-]+)[[:space:]]*\|[[:space:]]*db=([A-Za-z0-9_-]+)[[:space:]]*\|[[:space:]]*cache=([A-Za-z0-9_-]+)$ ]]; then
     die "invalid intake command format"
   fi
 
   local product_name fe be db cache slug project_path
   product_name="${BASH_REMATCH[1]}"
-  fe="${BASH_REMATCH[2]}"
-  be="${BASH_REMATCH[3]}"
-  db="${BASH_REMATCH[4]}"
-  cache="${BASH_REMATCH[5]}"
+  product_name="$(echo "$product_name" | tr '\n' ' ' | sed -E 's/[[:space:]]+/ /g; s/^[[:space:]]+|[[:space:]]+$//g')"
+  fe="$(echo "${BASH_REMATCH[2]}" | tr '[:upper:]' '[:lower:]')"
+  be="$(echo "${BASH_REMATCH[3]}" | tr '[:upper:]' '[:lower:]')"
+  db="$(echo "${BASH_REMATCH[4]}" | tr '[:upper:]' '[:lower:]')"
+  cache="$(echo "${BASH_REMATCH[5]}" | tr '[:upper:]' '[:lower:]')"
 
   validate_stack_value fe "$fe" next
   validate_stack_value be "$be" nest
@@ -850,7 +1415,7 @@ handle_intake_start() {
     local existing_name
     existing_name="$(state_value project_name "$project_path/00-governance/project-state.yaml")"
     if [ -n "$existing_name" ] && [ "$existing_name" != "TBD" ]; then
-      die "project already initialized as '$existing_name'. this template supports one project only. continue by extending current scope/features, or run 'start next phase: <goal>' after release."
+      die "project already initialized as '$existing_name'. this template supports one project only. continue by extending current scope/features, or run 'execute phase <n>' (or 'start next phase: <goal>') after release."
     fi
     die "project state already exists in repository root. this template supports one project only."
   fi
@@ -907,9 +1472,69 @@ STACK
   if ! grep -Eq '^\|[[:space:]]*phase-1[[:space:]]*\|' "$project_path/00-governance/phases.md"; then
     append_phase_row "$project_path" phase-1 mvp active "$actor" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "" "initial project creation"
   fi
+  sync_phase_zero_plan "$project_path" "$actor" "$cmd"
 
   append_command_log "$project_path" "$actor" "$cmd" success "intake initialized and stack locked"
   log "Project initialized at repository root with phase-1 (mvp) big picture."
+  log "Captured stack lock: fe=$fe, be=$be, db=$db, cache=$cache"
+  log "Current state: stage=intake, item=request-intake, next_actor=project-manager"
+  log "Suggested next commands: set phase plan: <phase-2 goal>; <phase-3 goal> -> preflight -> approve stage intake"
+}
+
+handle_set_phase_plan() {
+  local project_path="$1"
+  local actor="$2"
+  local cmd="$3"
+  local state_file="$project_path/00-governance/project-state.yaml"
+  local goals_raw
+  local -a goals
+  local phase_idx phase_name goal trimmed planned_added
+
+  require_project_state "$project_path"
+  require_stage intake "$state_file"
+
+  if [[ ! "$cmd" =~ ^set\ phase\ plan:\ (.+)$ ]]; then
+    die "invalid phase plan command format"
+  fi
+  goals_raw="${BASH_REMATCH[1]}"
+  goals_raw="$(echo "$goals_raw" | tr '\n' ' ')"
+  IFS=';' read -r -a goals <<< "$goals_raw"
+  [ "${#goals[@]}" -gt 0 ] || die "phase plan requires at least one goal"
+
+  phase_idx=2
+  planned_added=0
+  for goal in "${goals[@]}"; do
+    trimmed="$(echo "$goal" | sed -E 's/[[:space:]]+/ /g; s/^[[:space:]]+|[[:space:]]+$//g')"
+    [ -n "$trimmed" ] || continue
+    trimmed="${trimmed//|/-}"
+    phase_name="phase-$phase_idx"
+    phase_idx=$((phase_idx + 1))
+
+    if phase_row_exists "$project_path" "$phase_name"; then
+      die "$phase_name already exists in phase register. phase plan can only append new future phases."
+    fi
+
+    append_phase_row \
+      "$project_path" \
+      "$phase_name" \
+      "$trimmed" \
+      "planned" \
+      "$actor" \
+      "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+      "" \
+      "planned during phase-0 intake"
+    planned_added=$((planned_added + 1))
+  done
+  [ "$planned_added" -gt 0 ] || die "phase plan requires at least one non-empty goal"
+
+  sync_phase_zero_plan "$project_path" "$actor" "$cmd"
+
+  set_state_value "$state_file" current_item phase-0-plan-captured
+  set_state_value "$state_file" last_actor "$actor"
+  set_state_value "$state_file" command_last set_phase_plan
+
+  append_command_log "$project_path" "$actor" "$cmd" success "phase roadmap captured"
+  log "Phase roadmap captured from phase-0 conversation."
 }
 
 handle_start_next_phase() {
@@ -917,74 +1542,66 @@ handle_start_next_phase() {
   local actor="$2"
   local cmd="$3"
   local state_file="$project_path/00-governance/project-state.yaml"
-  local previous_phase previous_goal previous_index next_index next_phase phase_goal
+  local phase_goal next_phase
 
   require_project_state "$project_path"
-  require_stage release "$state_file"
-  has_stage_approval "$project_path" release || die "release stage must be approved before starting next phase"
+  state_file="$project_path/00-governance/project-state.yaml"
 
   if [[ ! "$cmd" =~ ^start\ next\ phase:\ (.+)$ ]]; then
     die "invalid next phase command format"
   fi
   phase_goal="${BASH_REMATCH[1]}"
-  phase_goal="$(echo "$phase_goal" | tr '\n' ' ' | sed -E 's/[[:space:]]+/ /g; s/^[[:space:]]+|[[:space:]]+$//g')"
-  phase_goal="${phase_goal//|/-}"
-  [ -n "$phase_goal" ] || die "next phase goal is required"
 
-  previous_phase="$(state_value current_phase "$state_file")"
-  [ -n "$previous_phase" ] || previous_phase="phase-1"
-  previous_goal="$(state_value current_phase_goal "$state_file")"
-  [ -n "$previous_goal" ] || previous_goal="completed phase"
+  transition_to_next_phase "$project_path" "$actor" "$cmd" "$phase_goal"
 
-  previous_index="$(state_value phase_index "$state_file")"
-  if [[ ! "$previous_index" =~ ^[0-9]+$ ]]; then
-    previous_index=1
+  next_phase="$(state_value current_phase "$state_file")"
+  set_state_value "$state_file" command_last start_next_phase
+  append_command_log "$project_path" "$actor" "$cmd" success "next phase started: $next_phase"
+  log "Started $next_phase with goal: $(state_value current_phase_goal "$state_file")"
+}
+
+handle_execute_phase() {
+  local project_path="$1"
+  local actor="$2"
+  local cmd="$3"
+  local state_file="$project_path/00-governance/project-state.yaml"
+  local action target_phase_num current_index expected_next target_phase target_goal target_status
+
+  require_project_state "$project_path"
+  state_file="$project_path/00-governance/project-state.yaml"
+
+  if [[ ! "$cmd" =~ ^(execute|proceed)\ phase\ ([0-9]+)$ ]]; then
+    die "invalid execute phase command format"
+  fi
+  action="${BASH_REMATCH[1]}"
+  target_phase_num="${BASH_REMATCH[2]}"
+
+  current_index="$(state_value phase_index "$state_file")"
+  [[ "$current_index" =~ ^[0-9]+$ ]] || current_index=1
+
+  if [ "$target_phase_num" = "$current_index" ]; then
+    handle_resume_stage "$project_path" "$actor" "$cmd"
+    return
   fi
 
-  next_index=$((previous_index + 1))
-  next_phase="phase-$next_index"
+  expected_next=$((current_index + 1))
+  if [ "$target_phase_num" != "$expected_next" ]; then
+    die "phase progression is sequential. current is phase-$current_index; next executable phase is phase-$expected_next."
+  fi
 
-  close_active_phase_row \
-    "$project_path" \
-    "$previous_phase" \
-    "$previous_goal" \
-    "completed through release approval" \
-    "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  target_phase="phase-$target_phase_num"
+  target_goal="$(phase_goal_from_register "$project_path" "$target_phase" || true)"
+  [ -n "$target_goal" ] || die "goal for $target_phase is missing. capture it via 'set phase plan: <phase-2 goal>; <phase-3 goal>'."
+  target_status="$(phase_status_from_register "$project_path" "$target_phase" || true)"
+  if [ "$target_status" != "planned" ]; then
+    die "$target_phase is not in planned status (current: ${target_status:-unknown})."
+  fi
 
-  archive_and_reset_approvals "$project_path" "$previous_phase"
-  append_phase_row \
-    "$project_path" \
-    "$next_phase" \
-    "$phase_goal" \
-    "active" \
-    "$actor" \
-    "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-    "" \
-    "started from project manager next-phase command"
-  append_phase_request_note "$project_path" "$actor" "$cmd" "$next_phase" "$phase_goal"
+  transition_to_next_phase "$project_path" "$actor" "$cmd" "$target_goal" "$target_phase_num"
 
-  set_state_value "$state_file" current_stage discovery
-  set_state_value "$state_file" current_item "$next_phase-scope-review"
-  set_state_value "$state_file" status in_progress
-  set_state_value "$state_file" scope_locked false
-  set_state_value "$state_file" approved_artifacts "[]"
-  set_state_value "$state_file" blocked_by "[]"
-  set_state_value "$state_file" active_epic none
-  set_state_value "$state_file" active_ticket none
-  set_state_value "$state_file" deployment_contract pending
-  set_state_value "$state_file" manual_test_gate_status not_started
-  set_state_value "$state_file" manual_test_last_result none
-  set_state_value "$state_file" open_manual_issues 0
-  set_state_value "$state_file" phase_index "$next_index"
-  set_state_value "$state_file" current_phase "$next_phase"
-  set_state_value "$state_file" current_phase_goal "$phase_goal"
-  set_state_value "$state_file" current_phase_status active
-  set_state_value "$state_file" next_actor project-manager
-  set_state_value "$state_file" last_actor "$actor"
-  set_state_value "$state_file" command_last start_next_phase
-
-  append_command_log "$project_path" "$actor" "$cmd" success "next phase started: $next_phase"
-  log "Started $next_phase with goal: $phase_goal"
+  set_state_value "$state_file" command_last execute_phase
+  append_command_log "$project_path" "$actor" "$cmd" success "$action to $target_phase"
+  log "Executed $target_phase with goal: $target_goal"
 }
 
 handle_review_scope() {
@@ -1312,7 +1929,7 @@ handle_approve_stage() {
   fi
 
   if [ "$stage" = "release" ]; then
-    [ -s "$project_path/infra/deploy/docker-compose.yml" ] || die "release stage approval requires infra/deploy/docker-compose.yml"
+    [ -s "$project_path/project/infra/deploy/docker-compose.yml" ] || die "release stage approval requires project/infra/deploy/docker-compose.yml"
     [ -s "$project_path/09-release/Deployment_Readiness_Evidence.md" ] || die "release stage approval requires 09-release/Deployment_Readiness_Evidence.md"
   fi
 
@@ -1430,14 +2047,16 @@ handle_submit_manual_test_failed() {
     *) die "manual test gate status must be prepared, in_progress, or failed (current: $gate_status)" ;;
   esac
 
-  local issues_file feedback_file execution_file issue_id now
+  local issues_file feedback_file execution_file issue_id now title_cell actor_cell
   issues_file="$(manual_issues_file "$project_path")"
   feedback_file="$(manual_feedback_file "$project_path")"
   execution_file="$(manual_execution_file "$project_path")"
   issue_id="$(next_manual_issue_id "$issues_file")"
   now="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  title_cell="$(sanitize_table_cell "$title")"
+  actor_cell="$(sanitize_table_cell "$actor")"
 
-  echo "| $issue_id | MANUAL | $title | $severity | open | $actor | software-developer | | | $now |" >> "$issues_file"
+  echo "| $issue_id | MANUAL | $title_cell | $severity | open | $actor_cell | software-developer | | | $now |" >> "$issues_file"
   append_manual_feedback "$feedback_file" "$actor" MANUAL "$title" "$issue_id" "$details"
   append_manual_execution "$execution_file" "$actor" MANUAL fail "$issue_id" "$details"
 
@@ -1719,7 +2338,7 @@ handle_resume_stage() {
         fi
         ;;
       release)
-        next_required="start next phase: <goal> (or keep release as final phase)"
+        next_required="execute phase <n> (preferred) or start next phase: <goal>"
         ;;
       *)
         next_required="continue current stage work and approval flow"
@@ -1823,8 +2442,13 @@ else
   project_path="$(discover_default_project_path || true)"
 fi
 
-command_id="$(resolve_command_id "$command_phrase" || true)"
-[ -n "$command_id" ] || die "unsupported command phrase. refer to workflow/commands.md"
+resolved_command="$(resolve_command_payload "$command_phrase" || true)"
+[ -n "$resolved_command" ] || die "unsupported command intent. include enough detail for AI intent mapping or refer to workflow/commands.md"
+command_id="${resolved_command%%$'\t'*}"
+resolved_phrase="${resolved_command#*$'\t'}"
+[ -n "$command_id" ] || die "unable to resolve command id from intent"
+[ -n "$resolved_phrase" ] || resolved_phrase="$command_phrase"
+command_phrase="$resolved_phrase"
 
 if [ "$command_id" != "intake_start" ]; then
   [ -n "$project_path" ] || die "no active project state found. run intake command first in repository root."
@@ -1836,11 +2460,17 @@ case "$command_id" in
   intake_start)
     handle_intake_start "$command_phrase" "$actor" "$project_slug"
     ;;
+  set_phase_plan)
+    handle_set_phase_plan "$project_path" "$actor" "$command_phrase"
+    ;;
   review_scope)
     handle_review_scope "$project_path" "$actor" "$command_phrase"
     ;;
   start_next_phase)
     handle_start_next_phase "$project_path" "$actor" "$command_phrase"
+    ;;
+  execute_phase)
+    handle_execute_phase "$project_path" "$actor" "$command_phrase"
     ;;
   lock_scope)
     handle_lock_scope "$project_path" "$actor" "$command_phrase"

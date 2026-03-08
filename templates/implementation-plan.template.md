@@ -24,10 +24,10 @@ Focus on immediate implementation sequencing and checks, not calendar estimates.
 
 | Path | Impact Type | Notes |
 | --- | --- | --- |
-| apps/ | | |
-| services/ | | |
-| infra/deploy/ | | |
-| packages/ | Optional | |
+| project/apps/ | | |
+| project/services/ | | |
+| project/infra/deploy/ | | |
+| project/packages/ | Optional | |
 
 ## Deployment Impact (compose)
 

@@ -9,7 +9,7 @@
 - [ ] Known issues documented
 - [ ] Release notes drafted
 - [ ] Deployment evidence exists in `Deployment_Readiness_Evidence.md`
-- [ ] Compose manifest exists at `infra/deploy/docker-compose.yml`
+- [ ] Compose manifest exists at `project/infra/deploy/docker-compose.yml`
 - [ ] Manual-test issues reviewed in `08-quality/Manual_Test_Issues.md`
 
 ## Compose Deployment Verification

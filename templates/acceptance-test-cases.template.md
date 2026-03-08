@@ -23,9 +23,9 @@ Capture acceptance-level verification mapped to requirements.
 
 | Path | Impact Type | Notes |
 | --- | --- | --- |
-| apps/ | | |
-| services/ | | |
-| infra/deploy/ | Compose verification links | |
+| project/apps/ | | |
+| project/services/ | | |
+| project/infra/deploy/ | Compose verification links | |
 
 ## Deployment Impact (compose)
 

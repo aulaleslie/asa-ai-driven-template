@@ -25,9 +25,9 @@ Define user journeys, states, and interaction outcomes.
 
 | Path | Impact Type | Notes |
 | --- | --- | --- |
-| apps/ | Primary | |
-| services/ | Dependency | |
-| packages/ | Optional | |
+| project/apps/ | Primary | |
+| project/services/ | Dependency | |
+| project/packages/ | Optional | |
 
 ## Deployment Impact (compose)
 

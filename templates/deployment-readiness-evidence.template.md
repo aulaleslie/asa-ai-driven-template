@@ -15,9 +15,9 @@
 
 | Path | Impact Type | Notes |
 | --- | --- | --- |
-| infra/deploy/ | Primary | |
-| services/ | | |
-| apps/ | Optional | |
+| project/infra/deploy/ | Primary | |
+| project/services/ | | |
+| project/apps/ | Optional | |
 
 ## Deployment Impact (compose)
 

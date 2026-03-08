@@ -3,8 +3,8 @@ services:
   app:
     image: <replace-with-image-or-build>
     build:
-      context: ../../
-      dockerfile: ./infra/deploy/Dockerfile
+      context: ../../..
+      dockerfile: ./project/infra/deploy/Dockerfile
     env_file:
       - ./.env.example
     ports:

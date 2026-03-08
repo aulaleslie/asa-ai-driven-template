@@ -24,10 +24,10 @@ Define quality approach, test levels, manual gate execution, and coverage priori
 
 | Path | Impact Type | Notes |
 | --- | --- | --- |
-| apps/ | | |
-| services/ | | |
-| infra/deploy/ | Deployment tests | |
-| packages/ | Optional | |
+| project/apps/ | | |
+| project/services/ | | |
+| project/infra/deploy/ | Deployment tests | |
+| project/packages/ | Optional | |
 
 ## Deployment Impact (compose)
 

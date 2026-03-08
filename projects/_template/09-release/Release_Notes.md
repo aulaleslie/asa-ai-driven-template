@@ -9,8 +9,8 @@
 
 ## Deployment Manifest References
 
-- Compose file: `infra/deploy/docker-compose.yml`
-- Env contract: `infra/deploy/.env.example`
+- Compose file: `project/infra/deploy/docker-compose.yml`
+- Env contract: `project/infra/deploy/.env.example`
 - Service container contracts:
 
 ## Operational Notes

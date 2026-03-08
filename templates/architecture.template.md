@@ -26,10 +26,10 @@ Describe technical design that satisfies functional and non-functional requireme
 
 | Path | Impact Type | Notes |
 | --- | --- | --- |
-| apps/ | | |
-| services/ | | |
-| infra/deploy/ | | |
-| packages/ | Optional | |
+| project/apps/ | | |
+| project/services/ | | |
+| project/infra/deploy/ | | |
+| project/packages/ | Optional | |
 
 ## Deployment Impact (compose)
 

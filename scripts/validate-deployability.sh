@@ -31,9 +31,9 @@ if [ "$#" -gt 1 ]; then
 fi
 
 project_path="${1:-.}"
-compose_file="$project_path/infra/deploy/docker-compose.yml"
-env_file="$project_path/infra/deploy/.env.example"
-deploy_readme="$project_path/infra/deploy/README.md"
+compose_file="$project_path/project/infra/deploy/docker-compose.yml"
+env_file="$project_path/project/infra/deploy/.env.example"
+deploy_readme="$project_path/project/infra/deploy/README.md"
 evidence_file="$project_path/09-release/Deployment_Readiness_Evidence.md"
 
 missing=0

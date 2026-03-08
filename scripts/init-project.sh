@@ -7,7 +7,7 @@ Usage:
   $(basename "$0") --root [--project-name <name>] [--fe <value> --be <value> --db <value> --cache <value>]
 
 Initialize project workspace artifacts from projects/_template.
-Default target is repository root when --root is used.
+Default target is repository root when --root is used, with application/runtime assets in ./project/.
 Examples:
   $(basename "$0") --root --project-name gym-erp --fe next --be nest --db sqlite --cache redis
 USAGE
@@ -20,6 +20,13 @@ log() {
 die() {
   log "ERROR: $1"
   exit "${2:-1}"
+}
+
+sanitize_table_cell() {
+  local value="${1:-}"
+  value="$(printf '%s' "$value" | tr '\n' ' ' | sed -E 's/[[:space:]]+/ /g; s/^[[:space:]]+|[[:space:]]+$//g')"
+  value="${value//|/&#124;}"
+  printf '%s' "$value"
 }
 
 require_arg() {
@@ -119,10 +126,7 @@ required_dirs=(
   07-delivery
   08-quality
   09-release
-  apps
-  services
-  infra
-  packages
+  project
 )
 
 for d in "${required_dirs[@]}"; do
@@ -130,9 +134,29 @@ for d in "${required_dirs[@]}"; do
 done
 
 log "Scaffolding project workspace in repository root"
-for d in "${required_dirs[@]}"; do
+workspace_dirs=(
+  00-governance
+  01-intake
+  02-discovery
+  03-analysis
+  04-architecture
+  05-design
+  06-planning
+  07-delivery
+  08-quality
+  09-release
+)
+
+for d in "${workspace_dirs[@]}"; do
   cp -R "$src/$d" "./$d"
 done
+
+mkdir -p ./project
+runtime_dirs=(apps services infra packages)
+for d in "${runtime_dirs[@]}"; do
+  cp -R "$src/$d" "./project/$d"
+done
+
 if [ ! -f "PROJECT_WORKSPACE.md" ]; then
   cp "$src/README.md" "PROJECT_WORKSPACE.md"
 fi
@@ -205,7 +229,7 @@ if [ ! -f "$dst/00-governance/command-log.md" ]; then
 LOG
 fi
 
-echo "| $(date -u +%Y-%m-%dT%H:%M:%SZ) | system | init-project | success | workspace initialized at $dst |" >> "$dst/00-governance/command-log.md"
+echo "| $(date -u +%Y-%m-%dT%H:%M:%SZ) | system | init-project | success | $(sanitize_table_cell "workspace initialized at $dst") |" >> "$dst/00-governance/command-log.md"
 
 # TODO: add optional owner/sponsor initialization flags.
 log "Project initialized successfully at $dst"

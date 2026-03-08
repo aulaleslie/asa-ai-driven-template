@@ -1,12 +1,29 @@
 version: 1
 command_registry:
   - id: intake_start
-    pattern: '^to project manager: I want to build (.+) \| fe=([a-z0-9_-]+) \| be=([a-z0-9_-]+) \| db=([a-z0-9_-]+) \| cache=([a-z0-9_-]+)$'
+    pattern: '^to project manager: I want to build (.+)[[:space:]]*\|[[:space:]]*fe=([A-Za-z0-9_-]+)[[:space:]]*\|[[:space:]]*be=([A-Za-z0-9_-]+)[[:space:]]*\|[[:space:]]*db=([A-Za-z0-9_-]+)[[:space:]]*\|[[:space:]]*cache=([A-Za-z0-9_-]+)$'
     required_stage: none
     guard_predicates:
       - stack_allowlist_valid
       - stack_override_requires_decision
     action_handler: handle_intake_start
+    mutates_state: true
+  - id: set_phase_plan
+    pattern: '^set phase plan: (.+)$'
+    required_stage: intake
+    guard_predicates:
+      - project_exists
+      - phase_plan_goals_present
+    action_handler: handle_set_phase_plan
+    mutates_state: true
+  - id: execute_phase
+    pattern: '^(execute|proceed) phase ([0-9]+)$'
+    required_stage: any
+    guard_predicates:
+      - project_exists
+      - phase_target_valid
+      - release_approved_for_next_phase
+    action_handler: handle_execute_phase
     mutates_state: true
   - id: review_scope
     pattern: '^review scope$'

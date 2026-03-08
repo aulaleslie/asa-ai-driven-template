@@ -5,11 +5,11 @@ This framework runs as a command-driven, document-first state machine.
 ## Operation Model
 
 1. Commands are executed through `scripts/command-dispatch.sh`.
-2. Dispatcher validates guards, applies deterministic updates, and logs outcomes.
+2. Dispatcher validates guards, maps free-form human intent to canonical commands, applies deterministic updates, and logs outcomes.
 3. Human approvals control stage gates and sensitive changes (`approve stage <stage>`).
 4. Project state, command logs, approvals, and handoffs are the operational source of truth.
-5. Project scaffolding is always in repository root for single-project mode.
-6. Repeated create-project intake commands are rejected; phase expansion uses `start next phase: <goal>`.
+5. Project scaffolding is always in repository root for single-project mode, with app/runtime assets under `./project/`.
+6. Repeated create-project intake commands are rejected; phase expansion uses `execute phase <n>` (or `start next phase: <goal>`).
 
 ## Stack Lock Checkpoint
 
@@ -18,13 +18,21 @@ This framework runs as a command-driven, document-first state machine.
 - `stack_locked: true` is required before moving beyond Discovery.
 - Intake is one-time and captures big-picture expectation for phase-1 (MVP), not detailed implementation planning.
 
+## Phase 0 (Conversational)
+
+- Intent: AI-led clarification loop before or during intake completion.
+- Interaction: human speaks in natural language; AI asks follow-up questions until project intent and stack are unambiguous.
+- Outputs: initial intake command execution, `01-intake/Phase_0_Plan.md`, and planned future phases in `00-governance/phases.md`.
+- Primary commands used by AI: `to project manager: I want to build ...`, `set phase plan: <phase-2 goal>; <phase-3 goal>`.
+- Human progression command: `execute phase <n>` (alias: `proceed phase <n>`).
+
 ## 1. Intake
 
 - Intent: capture request and initialize stack profile.
 - Outputs: intake request, stack lock, initial state.
 - Gate: human intake confirmation.
 - Next role: Project Manager.
-- Note: after release of each phase, Project Manager starts next requirement cycle with `start next phase: <goal>`.
+- Note: after release of each phase, Project Manager starts next requirement cycle with `execute phase <n>` (or `start next phase: <goal>` when ad-hoc).
 
 ## 2. Discovery
 
@@ -97,4 +105,4 @@ No transition is valid without:
 - Single gate command: `approve stage <intake|discovery|analysis|architecture|design|planning|delivery|quality|release>`.
 - Pre-check command: `preflight` (shows exact blockers before approval/advance).
 - Transition to the next stage is blocked until current stage approval exists in `00-governance/approvals.md`.
-- After release approval, new scope iteration starts with `start next phase: <goal>`.
+- After release approval, new scope iteration starts with `execute phase <n>` (or `start next phase: <goal>`).

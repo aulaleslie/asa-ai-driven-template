@@ -25,10 +25,10 @@ Define project intent, business outcome, scope boundaries, and governance baseli
 
 | Path | Impact Type | Notes |
 | --- | --- | --- |
-| apps/ | | |
-| services/ | | |
-| infra/ | | |
-| packages/ | Optional | |
+| project/apps/ | | |
+| project/services/ | | |
+| project/infra/ | | |
+| project/packages/ | Optional | |
 
 ## Deployment Impact (compose)
 

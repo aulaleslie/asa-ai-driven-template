@@ -15,4 +15,4 @@ This folder stores deployment-only artifacts.
 
 | Service | Source Path | Port(s) | Dependencies | Notes |
 | --- | --- | --- | --- | --- |
-| app | services/<service> | | | |
+| app | project/services/<service> | | | |

@@ -25,9 +25,9 @@ Define entities, relationships, constraints, and ownership.
 
 | Path | Impact Type | Notes |
 | --- | --- | --- |
-| services/ | Primary | |
-| infra/deploy/ | Env and service dependencies | |
-| packages/ | Shared data contracts | |
+| project/services/ | Primary | |
+| project/infra/deploy/ | Env and service dependencies | |
+| project/packages/ | Shared data contracts | |
 
 ## Deployment Impact (compose)
 

@@ -22,7 +22,7 @@ The framework enforces explicit handoffs, mandatory human approvals, stack lock 
 1. Command-driven workflow using a deterministic dispatcher.
 2. Stack lock from the first intake command.
 3. Strict role specialization and no self-approval.
-4. Monorepo contract: `apps/`, `services/`, `infra/`, optional `packages/`.
+4. Monorepo contract: `project/apps/`, `project/services/`, `project/infra/`, optional `project/packages/`.
 5. Quality gate includes mandatory human manual-test execution using generated runbook.
 6. Release readiness requires deployment evidence for:
    - `docker compose up --build -d`
@@ -44,9 +44,14 @@ The framework enforces explicit handoffs, mandatory human approvals, stack lock 
 
 ## Command Execution Quickstart
 
+Canonical examples are shown below; dispatcher can map free-form human intents to these commands.
+
 1. Start project from intake command (stack lock initialized):
    - `./scripts/command-dispatch.sh --command "to project manager: I want to build gym erp | fe=next | be=nest | db=sqlite | cache=redis" --actor human-owner`
    - This command is one-time initialization and records only big-picture expectation for phase-1 (MVP).
+   - Optional phase-0 roadmap capture:
+     - `./scripts/command-dispatch.sh --command "set phase plan: inventory optimization; analytics dashboard" --actor project-manager`
+     - This writes `01-intake/Phase_0_Plan.md` and planned rows to `00-governance/phases.md`.
 2. Approve and move through stage gates (single command entry point):
    - `./scripts/command-dispatch.sh --command "preflight" --actor project-manager`
    - `./scripts/command-dispatch.sh --command "approve stage intake" --actor sponsor`
@@ -76,15 +81,20 @@ The framework enforces explicit handoffs, mandatory human approvals, stack lock 
    - `./scripts/validate-deployability.sh .`
 6. Start a new requirement phase in the same project after release approval:
    - `./scripts/command-dispatch.sh --command "approve stage release" --actor release-approver`
-   - `./scripts/command-dispatch.sh --command "start next phase: inventory optimization and reporting" --actor human-owner`
+   - Preferred: `./scripts/command-dispatch.sh --command "execute phase 2" --actor human-owner`
+   - Alias: `./scripts/command-dispatch.sh --command "proceed phase 2" --actor human-owner`
+   - Legacy fallback: `./scripts/command-dispatch.sh --command "start next phase: inventory optimization and reporting" --actor human-owner`
+
+See conversational operation details in `workflow/conversational-mode.md`.
 
 ## Scaffolding Behavior
 
 - This template is used inside an already created repository.
 - This clone supports one project workspace in repository root.
+- Application/runtime scaffold is created under `./project/` (`project/apps`, `project/services`, `project/infra`, `project/packages`).
 - `--project` is optional and accepted only as `.` or `root`.
 - The framework never creates or initializes a separate repository.
-- A second create-project intake command is intentionally rejected; extend scope or start a new phase instead.
+- A second create-project intake command is intentionally rejected; extend scope or execute the next planned phase instead.
 
 ## Policy: Development vs Deployment
 

@@ -22,6 +22,8 @@ missing=0
 
 required_command_ids=(
   intake_start
+  set_phase_plan
+  execute_phase
   review_scope
   start_next_phase
   lock_scope
@@ -60,6 +62,8 @@ done
 
 required_handlers=(
   handle_intake_start
+  handle_set_phase_plan
+  handle_execute_phase
   handle_review_scope
   handle_start_next_phase
   handle_lock_scope
@@ -167,11 +171,13 @@ for key in "${required_state_keys[@]}"; do
 done
 
 required_artifacts=(
+  projects/_template/01-intake/Phase_0_Plan.md
   projects/_template/08-quality/Manual_Test_Script.md
   projects/_template/08-quality/Manual_Test_Execution_Log.md
   projects/_template/08-quality/Manual_Test_Feedback.md
   projects/_template/08-quality/Manual_Test_Issues.md
   projects/_template/00-governance/phases.md
+  workflow/conversational-mode.md
   scripts/generate-manual-test-script.sh
   scripts/validate-manual-test-gate.sh
 )

@@ -19,6 +19,13 @@ die() {
   exit "${2:-1}"
 }
 
+sanitize_table_cell() {
+  local value="${1:-}"
+  value="$(printf '%s' "$value" | tr '\n' ' ' | sed -E 's/[[:space:]]+/ /g; s/^[[:space:]]+|[[:space:]]+$//g')"
+  value="${value//|/&#124;}"
+  printf '%s' "$value"
+}
+
 get_state_value() {
   local key="$1"
   local file="$2"
@@ -46,7 +53,14 @@ append_command_log() {
   local command="$3"
   local result="$4"
   local notes="$5"
+  local actor_cell command_cell result_cell notes_cell
   local log_file="$project_path/00-governance/command-log.md"
+
+  actor_cell="$(sanitize_table_cell "$actor")"
+  command_cell="$(sanitize_table_cell "$command")"
+  result_cell="$(sanitize_table_cell "$result")"
+  notes_cell="$(sanitize_table_cell "$notes")"
+
   [ -f "$log_file" ] || {
     cat > "$log_file" <<LOG
 # Command Log
@@ -55,7 +69,7 @@ append_command_log() {
 | --- | --- | --- | --- | --- |
 LOG
   }
-  echo "| $(date -u +%Y-%m-%dT%H:%M:%SZ) | $actor | $command | $result | $notes |" >> "$log_file"
+  echo "| $(date -u +%Y-%m-%dT%H:%M:%SZ) | $actor_cell | $command_cell | $result_cell | $notes_cell |" >> "$log_file"
 }
 
 if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then

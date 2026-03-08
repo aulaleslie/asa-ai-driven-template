@@ -25,9 +25,9 @@ Maintain precise, shared domain terminology.
 
 | Path | Impact Type | Notes |
 | --- | --- | --- |
-| apps/ | Consumer impact | |
-| services/ | Domain model impact | |
-| packages/ | Shared contract impact | |
+| project/apps/ | Consumer impact | |
+| project/services/ | Domain model impact | |
+| project/packages/ | Shared contract impact | |
 
 ## Deployment Impact (compose)
 

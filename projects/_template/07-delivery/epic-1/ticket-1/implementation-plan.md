@@ -35,9 +35,9 @@ Execution-focused summary only (no timeline/date estimates by default).
 
 | Path | Impact Type | Notes |
 | --- | --- | --- |
-| apps/ | | |
-| services/ | | |
-| infra/deploy/ | | |
+| project/apps/ | | |
+| project/services/ | | |
+| project/infra/deploy/ | | |
 
 ## Validation Plan
 

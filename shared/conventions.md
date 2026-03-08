@@ -10,10 +10,10 @@
 
 Required top-level structure for generated systems:
 
-- `apps/` frontend apps and user-facing clients
-- `services/` backend APIs/workers
-- `infra/` deployment and operations assets
-- `packages/` optional shared libraries/contracts
+- `project/apps/` frontend apps and user-facing clients
+- `project/services/` backend APIs/workers
+- `project/infra/` deployment and operations assets
+- `project/packages/` optional shared libraries/contracts
 
 ## Repository Scaffolding Rule
 
@@ -26,8 +26,8 @@ Required top-level structure for generated systems:
 
 - Compose service names must be lowercase kebab-case.
 - Environment variables must be uppercase snake case.
-- Service ports must be explicitly documented in `infra/deploy/README.md`.
-- Deployment-only compose files live under `infra/deploy/`.
+- Service ports must be explicitly documented in `project/infra/deploy/README.md`.
+- Deployment-only compose files live under `project/infra/deploy/`.
 
 ## Stack-Aware Development Method
 

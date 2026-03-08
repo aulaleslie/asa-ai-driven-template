@@ -14,8 +14,8 @@
 
 | Path | Impact Type | Notes |
 | --- | --- | --- |
-| services/<service> | Primary | |
-| infra/deploy/docker-compose.yml | Primary | |
+| project/services/<service> | Primary | |
+| project/infra/deploy/docker-compose.yml | Primary | |
 
 ## Deployment Impact (compose)
 

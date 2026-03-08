@@ -13,10 +13,10 @@
 
 | Path | Impact Type | Notes |
 | --- | --- | --- |
-| apps/ | | |
-| services/ | | |
-| infra/deploy/ | | |
-| packages/ | Optional | |
+| project/apps/ | | |
+| project/services/ | | |
+| project/infra/deploy/ | | |
+| project/packages/ | Optional | |
 
 ## Overview
 

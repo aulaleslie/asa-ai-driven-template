@@ -8,8 +8,8 @@
 ## Deployment Contract
 
 - Required command: `docker compose up --build -d`
-- Compose file: `infra/deploy/docker-compose.yml`
-- Env contract file: `infra/deploy/.env.example`
+- Compose file: `project/infra/deploy/docker-compose.yml`
+- Env contract file: `project/infra/deploy/.env.example`
 
 ## Evidence Log
 

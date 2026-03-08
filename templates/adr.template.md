@@ -24,10 +24,10 @@ Capture architecture decisions with rationale and consequences.
 
 | Path | Impact Type | Notes |
 | --- | --- | --- |
-| apps/ | Optional | |
-| services/ | | |
-| infra/deploy/ | | |
-| packages/ | Optional | |
+| project/apps/ | Optional | |
+| project/services/ | | |
+| project/infra/deploy/ | | |
+| project/packages/ | Optional | |
 
 ## Deployment Impact (compose)
 

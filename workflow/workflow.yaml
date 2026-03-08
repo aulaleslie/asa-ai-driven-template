@@ -3,11 +3,13 @@ state_machine:
   command_entrypoint: ./scripts/command-dispatch.sh
   stage_gate_command: approve stage <stage>
   workspace_policy: single_project_root_workspace
-  phase_cycle_command: start next phase: <goal>
+  phase_cycle_command: execute phase <n>
+  legacy_phase_cycle_command: start next phase: <goal>
   stages:
     intake:
       required_artifacts:
         - <workspace>/01-intake/request.md
+        - <workspace>/01-intake/Phase_0_Plan.md
         - <workspace>/00-governance/stack-lock.yaml
       approval_gate: human_intake_approval
       next_responsible_role: project-manager
@@ -107,7 +109,7 @@ state_machine:
         - <workspace>/09-release/Release_Readiness.md
         - <workspace>/09-release/Release_Notes.md
         - <workspace>/09-release/Known_Issues.md
-        - <workspace>/infra/deploy/docker-compose.yml
+        - <workspace>/project/infra/deploy/docker-compose.yml
       approval_gate: human_release_approval
       next_responsible_role: project-manager
       invariants:

@@ -1,6 +1,6 @@
 # Project Workspace Template
 
-Scaffold this workspace in repository root by default and execute delivery via command dispatcher.
+Scaffold this workspace in repository root by default, with application/runtime assets under `./project/`, and execute delivery via command dispatcher.
 
 ## Folder Map
 
@@ -14,10 +14,10 @@ Scaffold this workspace in repository root by default and execute delivery via c
 - `07-delivery/` implementation packets by epic/ticket
 - `08-quality/` strategy, test cases, QA evidence, manual-test gate artifacts
 - `09-release/` readiness and release records
-- `apps/` frontend applications
-- `services/` backend services/workers
-- `infra/deploy/` deployment-only compose assets
-- `packages/` optional shared packages
+- `project/apps/` frontend applications
+- `project/services/` backend services/workers
+- `project/infra/deploy/` deployment-only compose assets
+- `project/packages/` optional shared packages
 
 ## Working Rules
 
@@ -29,4 +29,4 @@ Scaffold this workspace in repository root by default and execute delivery via c
 - Use stack-aware TDD + DDD by default (or approved equivalent) and record evidence in delivery/quality artifacts.
 - Manual-test gate requires generated script execution and issue closure before quality approval.
 - This workspace is inside the current repository; do not create a new repository during scaffolding.
-- This template supports only one project workspace per repository clone; use `start next phase: <goal>` for additional requirements.
+- This template supports only one project workspace per repository clone; use `execute phase <n>` (or `start next phase: <goal>`) for additional requirements.
